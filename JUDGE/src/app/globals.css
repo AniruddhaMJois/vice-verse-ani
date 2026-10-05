@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 260 60% 4%;
+    --foreground: 210 40% 98%;
+    --card: 260 50% 7%;
+    --card-foreground: 210 40% 98%;
+    --popover: 260 50% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 333 100% 58%; /* Hot Vice Pink #ff2a85 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 186 100% 50%; /* Miami Cyber Cyan #00f0ff */
+    --secondary-foreground: 260 60% 4%;
+    --muted: 260 30% 15%;
+    --muted-foreground: 250 20% 65%;
+    --accent: 333 100% 58%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 260 30% 18%;
+    --input: 260 30% 18%;
+    --ring: 333 100% 58%;
+    --radius: 0.75rem;
+  }
+}
+
+body {
+  background-color: #070512;
+  color: #f1f5f9;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Vice City Grid & Ambient Neon */
+.bg-vice-grid {
+  background-image: 
+    linear-gradient(to right, rgba(255, 42, 133, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* GTA VI Neon Glass HUD Cards */
+.vice-card {
+  background: rgba(13, 10, 33, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+}
+
+.vice-card-pink {
+  border-color: rgba(255, 42, 133, 0.35);
+  box-shadow: 0 0 25px -5px rgba(255, 42, 133, 0.2), inset 0 1px 0 0 rgba(255, 42, 133, 0.2);
+}
+
+.vice-card-cyan {
+  border-color: rgba(0, 240, 255, 0.35);
+  box-shadow: 0 0 25px -5px rgba(0, 240, 255, 0.2), inset 0 1px 0 0 rgba(0, 240, 255, 0.2);
+}
+
+/* Active GTA VI Sidebar Tab Glow (Hot Magenta Pill) */
+.vice-tab-active {
+  background: linear-gradient(135deg, #ff2a85 0%, #f43f5e 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 20px -2px rgba(255, 42, 133, 0.5);
+  font-weight: 700;
+}
+
+/* Glowing Neon Button (Enter Evaluation) */
+.btn-enter-neon {
+  background: linear-gradient(135deg, #ff2a85 0%, #db2777 50%, #9333ea 100%);
+  box-shadow: 0 0 35px 2px rgba(255, 42, 133, 0.45), 0 0 15px rgba(0, 240, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-enter-neon:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 50px 6px rgba(255, 42, 133, 0.65), 0 0 25px rgba(0, 240, 255, 0.5);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #070512;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e153b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff2a85;
+}

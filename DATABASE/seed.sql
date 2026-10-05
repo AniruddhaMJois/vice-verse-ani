@@ -1,5 +1,5 @@
 -- ==============================================================================
--- VICEVERSE: SEED DATA FOR ROUNDS, TEAMS, CRITERIA & USERS
+-- VICEVERSE: SEED DATA FOR SINGLE JUDGING ROUND, TEAMS, CRITERIA & USERS
 -- ==============================================================================
 
 -- 1. Seed Judges and Mentors
@@ -10,11 +10,9 @@ INSERT INTO public.profiles (login_id, pin, full_name, role) VALUES
 ('MNR20002', '8765', 'Kavya Rao (Design Mentor)', 'mentor')
 ON CONFLICT (login_id) DO NOTHING;
 
--- 2. Seed Rounds
+-- 2. Seed Single Official Judging Round
 INSERT INTO public.rounds (round_number, round_name, description, is_active) VALUES
-(1, 'Round 1: Idea Pitch & Problem Statement', 'Evaluation of concept clarity, problem relevance, and innovation', true),
-(2, 'Round 2: Prototype & Technical Implementation', 'Evaluation of working prototype, architecture, and UI/UX', true),
-(3, 'Round 3: Grand Finale & Business Viability', 'Final stage evaluation and Q&A', false)
+(1, 'Grand Hackathon Evaluation Round', 'Official comprehensive evaluation of problem understanding, technical feasibility, prototype demo, and presentation.', true)
 ON CONFLICT (round_number) DO NOTHING;
 
 -- 3. Seed Teams
@@ -42,14 +40,14 @@ SELECT id, 'Vikram Verma', 'CyberSecurity', true FROM public.teams WHERE team_id
 UNION ALL
 SELECT id, 'Ananya Sen', 'ISE', false FROM public.teams WHERE team_id = 'VV-103';
 
--- 5. Map Teams to Round 1
+-- 5. Map Teams to the Single Judging Round
 INSERT INTO public.round_teams (round_id, team_id)
 SELECT r.id, t.id
 FROM public.rounds r, public.teams t
 WHERE r.round_number = 1
 ON CONFLICT (round_id, team_id) DO NOTHING;
 
--- 6. Seed Evaluation Criteria for Round 1
+-- 6. Seed Evaluation Criteria for the Single Judging Round
 INSERT INTO public.evaluation_criteria (round_id, criteria_name, description, max_marks, display_order)
 SELECT r.id, 'Problem Understanding & Relevance', 'Clarity of the defined issue and target audience', 10, 1
 FROM public.rounds r WHERE r.round_number = 1

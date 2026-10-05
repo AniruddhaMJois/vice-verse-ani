@@ -32,3 +32,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 PROJECT_WORKFLOW_AND_PLAN.*
+node_modules
