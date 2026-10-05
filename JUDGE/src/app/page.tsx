@@ -10,11 +10,7 @@ export default function GatewayPage() {
   const { user, isJudge, isMentor, isLoading } = useAuth();
 
   const handleEnter = () => {
-    if (user) {
-      router.push("/workspace");
-    } else {
-      router.push("/login");
-    }
+    router.push("/workspace");
   };
 
   return (
@@ -24,31 +20,31 @@ export default function GatewayPage() {
       <div className="absolute top-12 left-12 w-64 h-64 bg-[#00f0ff]/10 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-2xl text-center space-y-8 sm:space-y-10">
-        {/* Vice City Accreditation Badge */}
+        {/* Hackathon Accreditation Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#120d2e]/90 border border-[#ff2a85]/40 text-[#ff2a85] text-xs font-mono font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(255,42,133,0.25)]">
           <Sparkles className="w-3.5 h-3.5 text-[#ff2a85]" />
-          <span>VICEVERSE &apos;26 &bull; OFFICIAL EVALUATION NODE</span>
+          <span>VICEVERSE &apos;26 &bull; OFFICIAL EVALUATION PORTAL</span>
         </div>
 
         {/* Hero Title */}
         <div className="space-y-3">
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white uppercase font-sans">
             <span className="bg-gradient-to-r from-white via-[#ff9ec6] to-[#00f0ff] bg-clip-text text-transparent">
-              RULE THE EVALUATION
+              HACKATHON EVALUATION
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-[#a594c7] font-medium tracking-wide max-w-lg mx-auto leading-relaxed">
             {user ? (
               <>
-                Logged in as <span className="text-white font-bold">{user.full_name}</span> ({user.login_id}) &bull;{" "}
+                Active Evaluator: <span className="text-white font-bold">{user.full_name}</span> ({user.login_id}) &bull;{" "}
                 {isJudge ? (
-                  <span className="text-[#ff2a85] font-bold">Authorized Jury Panel</span>
+                  <span className="text-[#ff2a85] font-bold">Judge Panel</span>
                 ) : (
                   <span className="text-[#00f0ff] font-bold">Mentor Observer</span>
                 )}
               </>
             ) : (
-              <span>Vice City Hackathon Portal &bull; Faculty, Jury &amp; Mentor Access</span>
+              <span>ViceVerse &apos;26 Official Judging &amp; Mentor Evaluation Platform</span>
             )}
           </p>
         </div>
@@ -60,11 +56,7 @@ export default function GatewayPage() {
             className="w-full sm:w-auto px-8 sm:px-14 py-4 sm:py-5 rounded-2xl btn-enter-neon text-white font-black text-base sm:text-lg tracking-wider uppercase flex items-center justify-center gap-3 sm:gap-4 mx-auto group active:scale-[0.98] transition-transform"
           >
             <span>ENTER EVALUATION</span>
-            {user ? (
-              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-white group-hover:translate-x-1.5 transition-transform" />
-            ) : (
-              <LogIn className="w-5 h-5 sm:w-6 sm:h-6 text-white group-hover:translate-x-1.5 transition-transform" />
-            )}
+            <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-white group-hover:translate-x-1.5 transition-transform" />
           </button>
         </div>
 

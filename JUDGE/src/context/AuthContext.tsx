@@ -4,6 +4,24 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { Profile, UserRole } from "@shared/types/database";
 import { judgeService } from "@backend/services/judgeService";
 
+export const DEFAULT_JUDGE_PROFILE: Profile = {
+  id: "prof-judge-1",
+  login_id: "JDG10001",
+  pin: "1234",
+  full_name: "Dr. Rajesh Kumar",
+  role: "judge",
+  created_at: "2026-10-04T00:00:00Z",
+};
+
+export const DEFAULT_MENTOR_PROFILE: Profile = {
+  id: "prof-mentor-1",
+  login_id: "MNR20001",
+  pin: "4321",
+  full_name: "Arjun Verma",
+  role: "mentor",
+  created_at: "2026-10-04T00:00:00Z",
+};
+
 interface AuthContextType {
   user: Profile | null;
   role: UserRole | null;
@@ -12,6 +30,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (loginId: string, pin: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  switchRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,19 +38,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const AUTH_STORAGE_KEY = "viceverse_auth_profile";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<Profile | null>(DEFAULT_JUDGE_PROFILE);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
       if (stored) {
         setUser(JSON.parse(stored));
+      } else {
+        setUser(DEFAULT_JUDGE_PROFILE);
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(DEFAULT_JUDGE_PROFILE));
       }
     } catch {
-      // Ignore parse errors
-    } finally {
-      setIsLoading(false);
+      setUser(DEFAULT_JUDGE_PROFILE);
     }
   }, []);
 
@@ -77,6 +97,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(AUTH_STORAGE_KEY);
   };
 
+  const switchRole = (newRole: UserRole) => {
+    const profile = newRole === "mentor" ? DEFAULT_MENTOR_PROFILE : DEFAULT_JUDGE_PROFILE;
+    setUser(profile);
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(profile));
+  };
+
   const isJudge = user?.role === "judge";
   const isMentor = user?.role === "mentor";
 
@@ -90,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         logout,
+        switchRole,
       }}
     >
       {children}

@@ -6,7 +6,7 @@ import { LogOut, ShieldCheck, Eye, Database, Radio, Flame } from "lucide-react";
 import { isSupabaseConfigured } from "@backend/supabaseClient";
 
 export default function Navbar() {
-  const { user, isJudge, isMentor, logout } = useAuth();
+  const { user, isJudge, isMentor, logout, switchRole } = useAuth();
   const hasSupabase = isSupabaseConfigured();
 
   if (!user) return null;
@@ -41,7 +41,7 @@ export default function Navbar() {
           {/* Live System Beacon */}
           <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#130d2b] border border-[#342261] text-[11px] font-mono text-[#00f0ff]">
             <Radio className="w-3 h-3 text-[#00f0ff] animate-pulse" />
-            <span>VICE CITY ONLINE</span>
+            <span>SYSTEM ONLINE</span>
           </div>
 
           {/* Database link status */}
@@ -50,19 +50,27 @@ export default function Navbar() {
             <span className="text-[11px] font-mono">{hasSupabase ? "Supabase Cloud" : "Local Mock Node"}</span>
           </div>
 
-          {/* Role Status Tag */}
-          {isJudge && (
-            <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold bg-[#ff2a85]/15 text-[#ff2a85] border border-[#ff2a85]/40 shadow-[0_0_12px_rgba(255,42,133,0.3)]">
+          {/* 1-Click Role Switcher (Judge / Mentor testing) */}
+          {isJudge ? (
+            <button
+              onClick={() => switchRole("mentor")}
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold bg-[#ff2a85]/15 hover:bg-[#ff2a85]/25 text-[#ff2a85] border border-[#ff2a85]/40 shadow-[0_0_12px_rgba(255,42,133,0.3)] transition-all cursor-pointer"
+              title="Click to preview Mentor mode"
+            >
               <ShieldCheck className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#ff2a85] shrink-0" />
-              <span>Jury Panel</span>
-            </span>
-          )}
-
-          {isMentor && (
-            <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold bg-[#00f0ff]/15 text-[#00f0ff] border border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.3)]">
+              <span>Judge Panel</span>
+              <span className="text-[9px] font-mono text-[#ff9ec6] ml-1 hidden md:inline">[Switch to Mentor]</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => switchRole("judge")}
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold bg-[#00f0ff]/15 hover:bg-[#00f0ff]/25 text-[#00f0ff] border border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.3)] transition-all cursor-pointer"
+              title="Click to preview Judge mode"
+            >
               <Eye className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#00f0ff] shrink-0" />
               <span>Mentor Observer</span>
-            </span>
+              <span className="text-[9px] font-mono text-[#a5f3fc] ml-1 hidden md:inline">[Switch to Judge]</span>
+            </button>
           )}
 
           {/* User Details */}
@@ -77,7 +85,7 @@ export default function Navbar() {
           <button
             onClick={logout}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold text-[#a594c7] hover:text-white hover:bg-[#1a1138] border border-[#2d1b59] hover:border-[#ff2a85]/50 transition-all active:scale-95"
-            title="Sign out of Jury Terminal"
+            title="Sign out of Portal"
           >
             <LogOut className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
             <span className="hidden sm:inline">Sign Out</span>
