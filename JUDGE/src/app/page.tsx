@@ -1,30 +1,21 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
-import { ArrowRight, Flame, ShieldCheck, Eye, Terminal, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, ShieldCheck, Eye, LogIn } from "lucide-react";
 
 export default function GatewayPage() {
   const router = useRouter();
   const { user, isJudge, isMentor, isLoading } = useAuth();
 
-  useEffect(() => {
-    if (!isLoading && !user) {
+  const handleEnter = () => {
+    if (user) {
+      router.push("/workspace");
+    } else {
       router.push("/login");
     }
-  }, [user, isLoading, router]);
-
-  if (isLoading || !user) {
-    return (
-      <div className="min-h-[85vh] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-2 border-[#ff2a85] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs text-[#a594c7] font-mono tracking-widest uppercase">Connecting to Vice City...</p>
-        </div>
-      </div>
-    );
-  }
+  };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-4 sm:p-6 bg-[#070512] bg-vice-grid relative overflow-hidden">
@@ -47,19 +38,33 @@ export default function GatewayPage() {
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-[#a594c7] font-medium tracking-wide max-w-lg mx-auto leading-relaxed">
-            Logged in as <span className="text-white font-bold">{user.full_name}</span> ({user.login_id}) &bull;{" "}
-            {isJudge ? "Authorized Jury Panel" : "Mentor Observer"}
+            {user ? (
+              <>
+                Logged in as <span className="text-white font-bold">{user.full_name}</span> ({user.login_id}) &bull;{" "}
+                {isJudge ? (
+                  <span className="text-[#ff2a85] font-bold">Authorized Jury Panel</span>
+                ) : (
+                  <span className="text-[#00f0ff] font-bold">Mentor Observer</span>
+                )}
+              </>
+            ) : (
+              <span>Vice City Hackathon Portal &bull; Faculty, Jury &amp; Mentor Access</span>
+            )}
           </p>
         </div>
 
         {/* Central Main Action Button: ENTER EVALUATION */}
         <div className="pt-2 sm:pt-4">
           <button
-            onClick={() => router.push("/workspace")}
+            onClick={handleEnter}
             className="w-full sm:w-auto px-8 sm:px-14 py-4 sm:py-5 rounded-2xl btn-enter-neon text-white font-black text-base sm:text-lg tracking-wider uppercase flex items-center justify-center gap-3 sm:gap-4 mx-auto group active:scale-[0.98] transition-transform"
           >
             <span>ENTER EVALUATION</span>
-            <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-white group-hover:translate-x-1.5 transition-transform" />
+            {user ? (
+              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-white group-hover:translate-x-1.5 transition-transform" />
+            ) : (
+              <LogIn className="w-5 h-5 sm:w-6 sm:h-6 text-white group-hover:translate-x-1.5 transition-transform" />
+            )}
           </button>
         </div>
 
@@ -70,13 +75,17 @@ export default function GatewayPage() {
             <span>PORTAL READY</span>
           </div>
           <div>&bull;</div>
-          <div>TEAM 5 ASSIGNED DOMAIN</div>
+          <div>TEAM 5 ASSIGNED NODE</div>
           <div>&bull;</div>
           <div>
-            {isJudge ? (
-              <span className="text-[#ff2a85] font-bold">FULL SCORING ACTIVE</span>
+            {user ? (
+              isJudge ? (
+                <span className="text-[#ff2a85] font-bold">JURY MODE</span>
+              ) : (
+                <span className="text-[#00f0ff] font-bold">OBSERVER MODE</span>
+              )
             ) : (
-              <span className="text-[#00f0ff] font-bold">OBSERVER READ-ONLY</span>
+              <span className="text-[#00f0ff]">AUTHENTICATION REQUIRED</span>
             )}
           </div>
         </div>
