@@ -1,0 +1,10 @@
+{
+  "name": "vice-verse-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix vice-verse-ani-ani/JUDGE run dev",
+    "build": "npm --prefix vice-verse-ani-ani/JUDGE run build",
+    "start": "npm --prefix vice-verse-ani-ani/JUDGE run start"
+  }
+}

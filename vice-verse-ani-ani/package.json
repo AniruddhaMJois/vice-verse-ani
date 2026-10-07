@@ -1,0 +1,10 @@
+{
+  "name": "vice-verse-main",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix JUDGE run dev",
+    "build": "npm --prefix JUDGE run build",
+    "start": "npm --prefix JUDGE run start"
+  }
+}
