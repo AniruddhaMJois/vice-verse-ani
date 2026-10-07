@@ -52,6 +52,7 @@ export type NebulaParams = {
   sparkles: number
   seed: number
   spikeWidth: number
+  splitStars?: boolean
   // planet
   planet: boolean
   planetX: number
@@ -67,7 +68,11 @@ export type NebulaParams = {
   speed: number
   vignette: number
   grain: number
-  // palette, dark to bright
+  // seam controls
+  seam: number
+  seamWidth: number
+  seamWobble: number
+  // palette: pink (left), dark to bright
   voidColor: string
   hazeColor: string
   duskColor: string
@@ -75,6 +80,17 @@ export type NebulaParams = {
   crimsonColor: string
   hotColor: string
   starColor: string
+  // palette: green (right), dark to bright
+  voidColor2: string
+  hazeColor2: string
+  duskColor2: string
+  wineColor2: string
+  crimsonColor2: string
+  hotColor2: string
+  starColor2: string
+  // bridge (seam blend)
+  bridgeColorA: string
+  bridgeColorB: string
 }
 
 export const NEBULA_DEFAULTS: NebulaParams = {
@@ -101,6 +117,7 @@ export const NEBULA_DEFAULTS: NebulaParams = {
   sparkles: 9,
   seed: 11,
   spikeWidth: 1,
+  splitStars: true,
 
   planet: true,
   planetX: 0.26,
@@ -117,13 +134,31 @@ export const NEBULA_DEFAULTS: NebulaParams = {
   vignette: 0.5,
   grain: 0.035,
 
-  voidColor: "#050309",
-  hazeColor: "#161a38",
-  duskColor: "#3b1646",
-  wineColor: "#5c0d31",
-  crimsonColor: "#c01245",
-  hotColor: "#ff1f5a",
-  starColor: "#f6e2e8",
+  seam: 0.5,
+  seamWidth: 0.22,
+  seamWobble: 0.06,
+
+  // PINK ramp (left)
+  voidColor: "#03050A",
+  hazeColor: "#0A1A2E",
+  duskColor: "#2A1450",
+  wineColor: "#6B0F45",
+  crimsonColor: "#E0207F",
+  hotColor: "#FF5CB8",
+  starColor: "#FFD6EC",
+
+  // GREEN ramp (right)
+  voidColor2: "#02060A",
+  hazeColor2: "#0A2430",
+  duskColor2: "#0C3A33",
+  wineColor2: "#0E5A3A",
+  crimsonColor2: "#12B85A",
+  hotColor2: "#6DFF9A",
+  starColor2: "#D9FFE4",
+
+  // BRIDGE
+  bridgeColorA: "#7B3FF2",
+  bridgeColorB: "#22D3EE",
 }
 
 /** Overlays on the defaults. Named for the sky, not the numbers. */
@@ -163,11 +198,15 @@ const UNIFORMS: Slot[] = [
   ["scale", "f"], ["warp", "f"], ["drift", "f"], ["density", "f"],
   ["threshold", "f"], ["softness", "f"],
   ["band", "f"], ["bandAngle", "f"], ["bandOffset", "f"], ["bandWidth", "f"], ["haze", "f"],
-  ["stars", "f"], ["twinkle", "f"], ["starDrift", "f"], ["spikeWidth", "f"],
+  ["stars", "f"], ["twinkle", "f"], ["starDrift", "f"], ["spikeWidth", "f"], ["splitStars", "b"],
   ["parallax", "f"], ["lens", "f"], ["lensRadius", "f"], ["lensPush", "f"], ["rippleSpeed", "f"],
   ["vignette", "f"], ["grain", "f"],
+  ["seam", "f"], ["seamWidth", "f"], ["seamWobble", "f"],
   ["voidColor", "c"], ["hazeColor", "c"], ["duskColor", "c"], ["wineColor", "c"],
   ["crimsonColor", "c"], ["hotColor", "c"], ["starColor", "c"],
+  ["voidColor2", "c"], ["hazeColor2", "c"], ["duskColor2", "c"], ["wineColor2", "c"],
+  ["crimsonColor2", "c"], ["hotColor2", "c"], ["starColor2", "c"],
+  ["bridgeColorA", "c"], ["bridgeColorB", "c"],
 ]
 
 const uName = (k: string) => "u" + k[0].toUpperCase() + k.slice(1)
@@ -179,7 +218,8 @@ const VERT = `#version 300 es
 void main(){
   vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));
   gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
-}`
+}
+`
 
 const FRAG = `#version 300 es
 precision highp float;
@@ -215,6 +255,12 @@ float fbm(vec2 p){
   for (int i = 0; i < 5; i++) { s += a * vnoise(p); p = r * p * 2.03 + 17.1; a *= 0.5; }
   return s / 0.96875;
 }
+float sideMix(vec2 pos, vec2 resCss){
+  float x = pos.x / resCss.x;
+  float wob = (fbm(vec2(pos.y / resCss.y * 2.0, uTime * uDrift * 2.0) + vec2(3.7)) - 0.5) * uSeamWobble;
+  float seam = uSeam + wob + 0.025 * sin(uTime * 0.07);
+  return smoothstep(seam - uSeamWidth, seam + uSeamWidth, x);
+}
 float bayer4(vec2 c){
   vec2 m = mod(c, 4.0);
   int i = int(m.x) + int(m.y) * 4;
@@ -226,6 +272,20 @@ vec3 ramp(float d, vec3 haze){
   c = mix(c, uWineColor, smoothstep(0.18, 0.44, d));
   c = mix(c, uCrimsonColor, smoothstep(0.42, 0.72, d));
   return mix(c, uHotColor, smoothstep(0.7, 0.96, d));
+}
+vec3 rampG(float d, vec3 hazeG){
+  vec3 c = mix(uVoidColor2, hazeG, smoothstep(0.0, 0.22, d));
+  c = mix(c, uWineColor2, smoothstep(0.18, 0.44, d));
+  c = mix(c, uCrimsonColor2, smoothstep(0.42, 0.72, d));
+  return mix(c, uHotColor2, smoothstep(0.7, 0.96, d));
+}
+vec3 dualRamp(float d, vec3 hazeP, vec3 hazeG, float m){
+  vec3 p = ramp(d, hazeP);
+  vec3 g = rampG(d, hazeG);
+  vec3 base = mix(p, g, m);
+  float w = 1.0 - abs(2.0 * m - 1.0);            // 1 at the seam, 0 at the sides
+  vec3 br = mix(uBridgeColorA, uBridgeColorB, m); // violet -> cyan across the seam
+  return mix(base, br * (0.35 + 0.65 * d), w * 0.55);
 }
 vec2 shift(float depth){
   return floor(uLook * uParallax * depth * 28.0);
@@ -292,15 +352,20 @@ void main(){
   float dith = bayer4(cell);
 
   // ---- the gas, printed as a halftone ---------------------------------------
+  float m = sideMix(cellC, resCss);
   vec3 g = field(cellC, resCss);
-  vec3 hazeCol = mix(uHazeColor, uDuskColor, smoothstep(0.38, 0.62, g.z));
+  vec3 hazeP = mix(uHazeColor, uDuskColor, smoothstep(0.38, 0.62, g.z));
+  vec3 hazeG = mix(uHazeColor2, uDuskColor2, smoothstep(0.38, 0.62, g.z));
+  vec3 hazeCol = mix(hazeP, hazeG, m);
+  vec3 curVoid = mix(uVoidColor, uVoidColor2, m);
+
   float dq = clamp(floor(g.x * L + dith) / L, 0.0, 1.0);
   float hq = floor(g.y * 3.0 + dith) / 3.0;
-  vec3 bg = mix(uVoidColor, hazeCol, hq * 0.7);
-  bg = mix(bg, ramp(dq * 0.7, hazeCol) * 0.42, smoothstep(0.0, 0.3, dq));
+  vec3 bg = mix(curVoid, hazeCol, hq * 0.7);
+  bg = mix(bg, dualRamp(dq * 0.7, hazeP, hazeG, m) * 0.42, smoothstep(0.0, 0.3, dq));
   float r = mix(uDotMin, uDotMax, sqrt(dq));
   float dotMask = step(length(f), r);
-  vec3 dotCol = dq < 0.01 ? mix(uVoidColor, hazeCol, 0.35 + hq * 0.5) : ramp(min(dq + 0.1, 1.0), hazeCol);
+  vec3 dotCol = dq < 0.01 ? mix(curVoid, hazeCol, 0.35 + hq * 0.5) : dualRamp(min(dq + 0.1, 1.0), hazeP, hazeG, m);
   vec3 col = mix(bg, dotCol, dotMask);
 
   // ---- pixel stars, three parallax depths ------------------------------------
@@ -314,15 +379,18 @@ void main(){
     vec2 id = floor(sp / gpx);
     vec2 fr = fract(sp / gpx) - 0.5;
     float prob = uStars * (l == 0 ? 0.009 : l == 1 ? 0.014 : 0.01);
-    float h = hash12(id + fl * 71.3);
+    float h = hash12(id + vec2(fl * 71.3));
     if (h > 1.0 - prob) {
-      float h2 = hash12(id * 1.7 + 3.1 + fl);
+      float h2 = hash12(id * 1.7 + vec2(3.1 + fl));
       float tw = 0.45 + 0.55 * (0.5 + 0.5 * sin(uTime * uTwinkle * (0.6 + h2 * 2.5) + h2 * 40.0));
       float rad = l == 2 ? 0.42 : 0.26 + h2 * 0.22;
-      float m = step(length(fr), rad);
-      vec3 c = (l == 0 || h2 > 0.82) ? uStarColor : uHotColor;
-      starAcc = max(starAcc, c * m * tw);
-      starA = max(starA, m * tw);
+      float starMask = step(length(fr), rad);
+      float sm = sideMix(sp, resCss);
+      vec3 starColP = (l == 0 || h2 > 0.82) ? uStarColor : uHotColor;
+      vec3 starColG = (l == 0 || h2 > 0.82) ? uStarColor2 : uHotColor2;
+      vec3 c = mix(starColP, starColG, sm);
+      starAcc = max(starAcc, c * starMask * tw);
+      starA = max(starA, starMask * tw);
     }
   }
   col = mix(col, starAcc / max(starA, 1e-3), starA * (1.0 - g.x * 0.55));
@@ -333,15 +401,20 @@ void main(){
     float R = uPlanet.z;
     vec2 dc = cellC - pc;
     if (length(dc) < R) {
+      float mPlanet = sideMix(pc, resCss);
+      vec3 pHazeP = mix(uHazeColor, uDuskColor, 0.5);
+      vec3 pHazeG = mix(uHazeColor2, uDuskColor2, 0.5);
+      vec3 pVoid = mix(uVoidColor, uVoidColor2, mPlanet);
+      vec3 pWine = mix(uWineColor, uWineColor2, mPlanet);
       vec2 n2 = dc / R;
       float z = sqrt(max(1.0 - dot(n2, n2), 0.0));
       float lit = clamp(dot(vec3(n2, z), normalize(vec3(-0.45, 0.55, 0.7))), 0.0, 1.0);
-      float surf = fbm(vec2(n2.x * 1.4 + uTime * 0.015, n2.y * 4.2) * 1.6 + 9.0);
+      float surf = fbm(vec2(n2.x * 1.4 + uTime * 0.015, n2.y * 4.2) * 1.6 + vec2(9.0));
       float pd = clamp(lit * 1.05 - smoothstep(0.55, 0.75, surf) * 0.45 * (1.0 - lit * 0.5) + 0.05, 0.0, 1.0);
       float pq = floor(pd * L + dith) / L;
-      vec3 pbg = mix(mix(uVoidColor, uWineColor, 0.35), uWineColor, pq);
+      vec3 pbg = mix(mix(pVoid, pWine, 0.35), pWine, pq);
       float pr = mix(0.2, 0.62, sqrt(pq));
-      vec3 pdot = ramp(min(pq * 0.85 + 0.25, 1.0), hazeCol);
+      vec3 pdot = dualRamp(min(pq * 0.85 + 0.25, 1.0), pHazeP, pHazeG, mPlanet);
       col = mix(pbg, pdot, step(length(f), pr));
     }
   }
@@ -359,10 +432,23 @@ void main(){
     float flare = 1.0 + b.z * 0.6;
     float reach = s.z * grow * tw * flare;
     float core = b.w * grow * flare;
-    vec3 tint = mix(uHotColor, uStarColor, b.x);
     vec2 c = s.xy + sh;
     vec2 d = css - c;
     float th = uSpikeWidth * 0.5 + 0.25;
+
+    // Per-pixel split around star center:
+    float sx = smoothstep(-core * 0.35 - 1.0, core * 0.35 + 1.0, d.x);
+    vec3 tintL = mix(uHotColor,  uStarColor,  b.x);   // left half: pink
+    vec3 tintR = mix(uHotColor2, uStarColor2, b.x);   // right half: green
+    vec3 tint  = mix(tintL, tintR, sx);
+    // exact center column: bridge color so the seam of the star is a soft line
+    tint = mix(tint, mix(uBridgeColorA, uBridgeColorB, sx), (1.0 - abs(2.0 * sx - 1.0)) * 0.5);
+
+    if (uSplitStars == 0) {
+      float smC = sideMix(c, resCss);
+      tint = mix(tintL, tintR, smC);
+    }
+
     float hx = step(abs(d.y), th) * pow(max(1.0 - abs(d.x) / max(reach, 1.0), 0.0), 1.1);
     float vy = step(abs(d.x), th) * pow(max(1.0 - abs(d.y) / max(reach, 1.0), 0.0), 1.1);
     // A short second pair of spikes, turned 45deg, only on the big ones.
@@ -370,17 +456,44 @@ void main(){
     float diag = step(0.5, core / px - 1.5) * 0.45 * max(
       step(abs(rd.y), th) * pow(max(1.0 - abs(rd.x) / max(reach * 0.22, 1.0), 0.0), 2.0),
       step(abs(rd.x), th) * pow(max(1.0 - abs(rd.y) / max(reach * 0.22, 1.0), 0.0), 2.0));
-    col = mix(col, tint, clamp(max(max(hx, vy), diag), 0.0, 1.0));
+
+    // Vertical spike lies on center axis -> uses bridge gradient
+    float sy = clamp(0.5 + (d.y / max(reach, 1.0)) * 0.5, 0.0, 1.0);
+    vec3 vSpikeTint = mix(uBridgeColorB, uBridgeColorA, sy);
+    if (uSplitStars == 0) {
+      vSpikeTint = tint;
+    }
+
+    vec3 spikeCol = mix(tint, vSpikeTint, clamp(vy / max(hx + vy + diag, 1e-4), 0.0, 1.0));
+    col = mix(col, spikeCol, clamp(max(max(hx, vy), diag), 0.0, 1.0));
+
     // The core snaps to the cell grid, so it reads as a pixel-art disc.
     float hp = px * 0.5;
     vec2 dcell = (floor(css / hp) + 0.5) * hp - (floor(c / hp) + 0.5) * hp;
     float disc = step(length(dcell), core);
     float glow = exp(-length(d) / max(core * 1.4, 1.0)) * (1.0 - disc);
     col += tint * glow * 0.35;
-    col = mix(col, tint, disc);
+
+    // Core disc: per-cell split (left = pink, right = green, center = bridge)
+    float sCell = smoothstep(-hp - 0.1, hp + 0.1, dcell.x);
+    vec3 coreTint = mix(tintL, tintR, sCell);
+    float coreBridge = 1.0 - abs(2.0 * sCell - 1.0);
+    coreTint = mix(coreTint, mix(uBridgeColorA, uBridgeColorB, 0.5), coreBridge * 0.85);
+    if (uSplitStars == 0) {
+      coreTint = tint;
+    }
+    col = mix(col, coreTint, disc);
+
+    // Center cross highlight
     float cross = max(step(abs(d.y), th) * step(abs(d.x), core * 0.85),
                       step(abs(d.x), th) * step(abs(d.y), core * 0.85));
-    col = mix(col, uStarColor, cross * disc * 0.9);
+    vec3 crossCol = mix(uStarColor, uStarColor2, sx);
+    crossCol = mix(crossCol, mix(uBridgeColorA, uBridgeColorB, sx), (1.0 - abs(2.0 * sx - 1.0)) * 0.4);
+    if (uSplitStars == 0) {
+      float smC = sideMix(c, resCss);
+      crossCol = mix(uStarColor, uStarColor2, smC);
+    }
+    col = mix(col, crossCol, cross * disc * 0.9);
   }
 
   // ---- post -----------------------------------------------------------------
@@ -823,7 +936,7 @@ export default function HalftoneNebula({
         (touch === "draw" ? "touch-none " : "touch-pan-y ") +
         className
       }
-      style={{ height }}
+      style={{ height, width: "100%" }}
       aria-label="A pixel-art nebula printed in halftone dots"
     >
       {failed ? (
@@ -832,9 +945,9 @@ export default function HalftoneNebula({
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(60% 45% at 12% 88%, var(--nebula-crimson, #E0207F) 0%, var(--nebula-wine, #6B0F45) 22%, var(--nebula-dusk, #2A1450) 50%, transparent 75%)," +
-              "radial-gradient(45% 30% at 88% 18%, var(--nebula-m-crimson, #12B85A) 0%, var(--nebula-m-wine, #0E5A3A) 30%, transparent 70%)," +
-              "var(--nebula-void, #03050A)",
+              "radial-gradient(60% 50% at 15% 50%, var(--nebula-crimson, #E0207F) 0%, var(--nebula-wine, #6B0F45) 30%, transparent 75%)," +
+              "radial-gradient(60% 50% at 85% 50%, var(--nebula-g-crimson, #12B85A) 0%, var(--nebula-g-wine, #0E5A3A) 30%, transparent 75%)," +
+              "linear-gradient(90deg, var(--nebula-void, #03050A) 0%, var(--nebula-dusk, #2A1450) 30%, var(--nebula-bridge-a, #7B3FF2) 48%, var(--nebula-bridge-b, #22D3EE) 52%, var(--nebula-g-dusk, #0C3A33) 70%, var(--nebula-g-void, #02060A) 100%)",
           }}
         />
       ) : (

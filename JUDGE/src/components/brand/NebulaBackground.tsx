@@ -76,22 +76,42 @@ export function NebulaBackground({ className = "", forceVariant }: NebulaBackgro
   const params = useNebulaPalette(activeVariant, isMobile);
 
   const isDataVariant = activeVariant === "judge-data" || activeVariant === "mentor-data";
-  const isMentor = activeVariant === "mentor-auth" || activeVariant === "mentor-data";
   const interactive = !isDataVariant;
 
   return (
     <div
       aria-hidden="true"
       className={`fixed inset-0 z-0 pointer-events-none overflow-hidden select-none ${className}`}
-      style={{ backgroundColor: "var(--bg, #03050A)" }}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: "100%",
+        height: "100%",
+        zIndex: 0,
+        pointerEvents: "none",
+        overflow: "hidden",
+        backgroundColor: "var(--bg, #03050A)",
+      }}
     >
       {/* Halftone Nebula WebGL2 layer */}
       <div
         className="absolute inset-0 transition-opacity duration-150 ease-in-out"
-        style={{ opacity: reducedMotion ? 1 : opacity }}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: "100%",
+          height: "100%",
+          opacity: reducedMotion ? 1 : opacity,
+        }}
       >
         <HalftoneNebula
-          height="100svh"
+          height="100%"
           eventTarget="window"
           interactive={interactive}
           touch="scroll"
@@ -99,23 +119,6 @@ export function NebulaBackground({ className = "", forceVariant }: NebulaBackgro
           params={params}
         />
       </div>
-
-      {/* Opposite-hue overlay (Step 4)
-          Screen blend mode with soft radial of the OTHER color.
-          - Green over pink-dominant (landing, judge-auth) positioned bottom-left (opposite to planet at upper-right)
-          - Pink over green-dominant (mentor-auth) positioned left/center (opposite to planet at right)
-          - Faint (6%) on data pages
-      */}
-      <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-300"
-        style={{
-          mixBlendMode: "screen",
-          opacity: isDataVariant ? 0.06 : 0.14,
-          background: isMentor
-            ? "radial-gradient(ellipse 65% 55% at 15% 50%, var(--nebula-hot, #FF5CB8) 0%, transparent 70%)"
-            : "radial-gradient(ellipse 65% 55% at 15% 85%, var(--nebula-m-hot, #6DFF9A) 0%, transparent 70%)",
-        }}
-      />
 
       {/* Scrim Layers (Step 4) */}
       {/* 1. Landing Scrim: Dark radial behind hero headline */}

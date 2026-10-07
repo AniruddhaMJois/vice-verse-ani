@@ -62,21 +62,32 @@
     --shadow-pop: 0 20px 60px rgba(0, 0, 0, 0.6);
 
     /* Nebula Tokens */
+    /* PINK ramp (left) */
     --nebula-void: #03050A;
     --nebula-haze: #0A1A2E;
     --nebula-dusk: #2A1450;
     --nebula-wine: #6B0F45;
     --nebula-crimson: #E0207F;
     --nebula-hot: #FF5CB8;
-    --nebula-star: #D9FFE4;
+    --nebula-star: #FFD6EC;
 
-    --nebula-m-void: #02060A;
-    --nebula-m-haze: #0A2430;
-    --nebula-m-dusk: #0C3A33;
-    --nebula-m-wine: #0E5A3A;
-    --nebula-m-crimson: #12B85A;
-    --nebula-m-hot: #6DFF9A;
-    --nebula-m-star: #FFD6EC;
+    /* GREEN ramp (right) */
+    --nebula-g-void: #02060A;
+    --nebula-g-haze: #0A2430;
+    --nebula-g-dusk: #0C3A33;
+    --nebula-g-wine: #0E5A3A;
+    --nebula-g-crimson: #12B85A;
+    --nebula-g-hot: #6DFF9A;
+    --nebula-g-star: #D9FFE4;
+
+    /* BRIDGE (seam transition) */
+    --nebula-bridge-a: #7B3FF2;
+    --nebula-bridge-b: #22D3EE;
+
+    /* SEAM CONTROLS */
+    --nebula-seam: 0.5;
+    --nebula-seam-width: 0.22;
+    --nebula-seam-wobble: 0.06;
 
     /* Radii */
     --radius-control: 4px;
