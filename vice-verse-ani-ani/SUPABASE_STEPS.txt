@@ -1,270 +1,212 @@
 ================================================================================
-VICEVERSE - JUDGE PORTAL: COMPLETE SUPABASE SETUP GUIDE & SQL SCRIPTS
+VICEVERSE - JUDGE & MENTOR EVALUATION PORTAL: SUPABASE SETUP GUIDE
 ================================================================================
 
-This document contains step-by-step instructions to set up Supabase for the
-ViceVerse Judge Portal, including project configuration, database schema,
-realtime subscriptions, seed data, and authentication roles.
+Follow these 3 quick steps to connect your Supabase database:
 
 --------------------------------------------------------------------------------
-STEP 1: CREATE SUPABASE PROJECT & GET API KEYS
+STEP 1: CREATE SUPABASE PROJECT & GET KEYS
 --------------------------------------------------------------------------------
 1. Go to https://supabase.com and sign in.
-2. Click "New Project".
-3. Enter:
-   - Name: viceverse (or viceverse-judge)
-   - Database Password: (save this securely)
-   - Region: Choose the closest region (e.g., South Asia / Mumbai or Singapore)
-4. Once created, go to: Project Settings -> API.
-5. Copy the following keys to your `.env.local` in your Next.js project:
-   - Project URL -> NEXT_PUBLIC_SUPABASE_URL
-   - anon / public key -> NEXT_PUBLIC_SUPABASE_ANON_KEY
-   - service_role key -> SUPABASE_SERVICE_ROLE_KEY (keep secret, server-only)
+2. Click "New Project". Name it (e.g., `viceverse-judge`).
+3. Once created, go to: Project Settings -> API.
+4. Copy the Project URL and anon public key.
+5. Create a file named `.env.local` inside the `vice-verse-ani-ani/JUDGE/` folder (or project root) with:
+
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+NEXT_PUBLIC_DATA_SOURCE=supabase
+
+(Note: You can also use NEXT_PUBLIC_SUPABASE_PROJECT_ID=your_project_id instead of full URL)
 
 --------------------------------------------------------------------------------
-STEP 2: RUN DATABASE SCHEMA IN SUPABASE SQL EDITOR
+STEP 2: RUN SQL IN SUPABASE SQL EDITOR
 --------------------------------------------------------------------------------
-1. In your Supabase Dashboard, click on "SQL Editor" in the left sidebar.
+In your Supabase Dashboard:
+1. Click "SQL Editor" in the left sidebar.
 2. Click "New query".
-3. Copy and paste the entire SQL block below, then click "RUN".
+3. Paste the entire SQL block below and click "Run".
 
---- [START OF SQL SCHEMA SCRIPT] ---
+--- [COPY EVERYTHING BELOW INTO SQL EDITOR] ---
 
--- 1. Profiles Table (Tracks user roles, specifically 'judge', 'admin', etc.)
+-- 1. Create Tables
 CREATE TABLE IF NOT EXISTS public.profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    email TEXT NOT NULL,
-    full_name TEXT,
-    role TEXT NOT NULL DEFAULT 'judge' CHECK (role IN ('judge', 'admin', 'lead', 'member')),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  login_id TEXT UNIQUE NOT NULL,
+  pin TEXT NOT NULL DEFAULT '1234',
+  name TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('judge', 'mentor')),
+  email TEXT,
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 2. Rounds Table (Hackathon evaluation rounds)
-CREATE TABLE IF NOT EXISTS public.rounds (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    round_number INT NOT NULL UNIQUE,
-    round_name TEXT NOT NULL,
-    description TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. Teams Table (Hardcoded / Seeded Hackathon Teams)
 CREATE TABLE IF NOT EXISTS public.teams (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    team_id TEXT NOT NULL UNIQUE, -- e.g., 'TEAM-101'
-    team_name TEXT NOT NULL,
-    domain TEXT NOT NULL, -- e.g., 'AI/ML', 'Web3', 'Healthcare'
-    case_study TEXT, -- e.g., 'AI-driven Patient Triage System'
-    canva_link TEXT, -- Canva presentation link
-    drive_link TEXT, -- Google Drive prototype link
-    created_at TIMESTAMPTZ DEFAULT NOW()
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_code TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  case_study TEXT NOT NULL,
+  canva_url TEXT,
+  drive_url TEXT,
+  github_url TEXT,
+  round_id TEXT DEFAULT 'final-round',
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 4. Team Members Table (Members and their academic branches)
 CREATE TABLE IF NOT EXISTS public.team_members (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    team_id UUID NOT NULL REFERENCES public.teams(id) ON DELETE CASCADE,
-    member_name TEXT NOT NULL,
-    branch TEXT NOT NULL, -- e.g., 'CSE', 'ISE', 'ECE', 'AIML'
-    is_lead BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id UUID REFERENCES public.teams(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  branch TEXT NOT NULL,
+  is_lead BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 5. Round Teams Mapping (Allots teams to rounds and optionally specific judges)
-CREATE TABLE IF NOT EXISTS public.round_teams (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    round_id UUID NOT NULL REFERENCES public.rounds(id) ON DELETE CASCADE,
-    team_id UUID NOT NULL REFERENCES public.teams(id) ON DELETE CASCADE,
-    assigned_judge_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(round_id, team_id)
+CREATE TABLE IF NOT EXISTS public.criteria (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  max_marks INTEGER NOT NULL CHECK (max_marks > 0),
+  sort_order INTEGER NOT NULL DEFAULT 1,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 6. Evaluation Criteria Table (Admin-defined criteria per round)
-CREATE TABLE IF NOT EXISTS public.evaluation_criteria (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    round_id UUID NOT NULL REFERENCES public.rounds(id) ON DELETE CASCADE,
-    criteria_name TEXT NOT NULL,
-    description TEXT,
-    max_marks INT NOT NULL CHECK (max_marks > 0),
-    display_order INT DEFAULT 1,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS public.judge_team_assignments (
+  judge_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  team_id UUID REFERENCES public.teams(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (judge_id, team_id)
 );
 
--- 7. Evaluations Table (Evaluation submissions by judges for teams in a round)
 CREATE TABLE IF NOT EXISTS public.evaluations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    round_id UUID NOT NULL REFERENCES public.rounds(id) ON DELETE CASCADE,
-    team_id UUID NOT NULL REFERENCES public.teams(id) ON DELETE CASCADE,
-    judge_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'submitted')),
-    total_score NUMERIC(5,2) DEFAULT 0,
-    feedback TEXT,
-    submitted_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(round_id, team_id, judge_id)
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id UUID REFERENCES public.teams(id) ON DELETE CASCADE,
+  judge_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'not_evaluated' CHECK (status IN ('not_evaluated', 'draft', 'submitted')),
+  total_marks NUMERIC(5,2) DEFAULT 0,
+  feedback TEXT,
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  submitted_at TIMESTAMPTZ,
+  UNIQUE (team_id, judge_id)
 );
 
--- 8. Evaluation Scores Table (Individual criterion scores)
 CREATE TABLE IF NOT EXISTS public.evaluation_scores (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    evaluation_id UUID NOT NULL REFERENCES public.evaluations(id) ON DELETE CASCADE,
-    criteria_id UUID NOT NULL REFERENCES public.evaluation_criteria(id) ON DELETE CASCADE,
-    score NUMERIC(5,2) NOT NULL DEFAULT 0 CHECK (score >= 0),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(evaluation_id, criteria_id)
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  evaluation_id UUID REFERENCES public.evaluations(id) ON DELETE CASCADE,
+  criterion_id UUID REFERENCES public.criteria(id) ON DELETE CASCADE,
+  marks NUMERIC(5,2) NOT NULL DEFAULT 0 CHECK (marks >= 0),
+  UNIQUE (evaluation_id, criterion_id)
 );
 
--- 9. Trigger to automatically create a profile record when a new user signs up
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO public.profiles (id, email, full_name, role)
-    VALUES (
-        new.id,
-        new.email,
-        COALESCE(new.raw_user_meta_data->>'full_name', 'Judge'),
-        COALESCE(new.raw_user_meta_data->>'role', 'judge')
-    )
-    ON CONFLICT (id) DO NOTHING;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-    AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
---- [END OF SQL SCHEMA SCRIPT] ---
-
---------------------------------------------------------------------------------
-STEP 3: ENABLE REALTIME ON EVALUATIONS
---------------------------------------------------------------------------------
-In the Supabase SQL Editor, run this command to enable Instant Realtime updates
-for evaluation status changes on the dashboard:
-
-ALTER PUBLICATION supabase_realtime ADD TABLE public.evaluations;
-
-(You can also verify this in: Database -> Publications -> supabase_realtime -> toggle 'evaluations' ON).
-
---------------------------------------------------------------------------------
-STEP 4: ROW LEVEL SECURITY (RLS) POLICIES
---------------------------------------------------------------------------------
-Run the following SQL in SQL Editor to secure the database while letting judges
-view teams and manage their evaluations:
-
+-- 2. Enable Row Level Security (RLS) & Add Policies
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.rounds ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.round_teams ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.evaluation_criteria ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.criteria ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.judge_team_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.evaluations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.evaluation_scores ENABLE ROW LEVEL SECURITY;
 
--- Read policies for authenticated judges
-CREATE POLICY "Allow authenticated read on profiles" ON public.profiles FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow authenticated read on rounds" ON public.rounds FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow authenticated read on teams" ON public.teams FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow authenticated read on team_members" ON public.team_members FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow authenticated read on round_teams" ON public.round_teams FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow authenticated read on criteria" ON public.evaluation_criteria FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow public read on profiles" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Allow public read on criteria" ON public.criteria FOR SELECT USING (true);
+CREATE POLICY "Allow read on teams" ON public.teams FOR SELECT USING (true);
+CREATE POLICY "Allow read on team_members" ON public.team_members FOR SELECT USING (true);
+CREATE POLICY "Allow read on judge_team_assignments" ON public.judge_team_assignments FOR SELECT USING (true);
+CREATE POLICY "Allow read on evaluations" ON public.evaluations FOR SELECT USING (true);
+CREATE POLICY "Allow insert on evaluations" ON public.evaluations FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow update on evaluations" ON public.evaluations FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Allow read on evaluation_scores" ON public.evaluation_scores FOR SELECT USING (true);
+CREATE POLICY "Allow insert on evaluation_scores" ON public.evaluation_scores FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow update on evaluation_scores" ON public.evaluation_scores FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Allow delete on evaluation_scores" ON public.evaluation_scores FOR DELETE USING (true);
 
--- Evaluations policies for judges: Can read, insert, and update their own evaluations
-CREATE POLICY "Judges can view all evaluations or own" ON public.evaluations FOR SELECT TO authenticated USING (true);
+-- 3. Enable Realtime Publications
+ALTER PUBLICATION supabase_realtime ADD TABLE public.evaluations;
 
-CREATE POLICY "Judges can insert own evaluation" ON public.evaluations FOR INSERT TO authenticated
-WITH CHECK (auth.uid() = judge_id);
+-- 4. Automatic Total Calculation Trigger
+CREATE OR REPLACE FUNCTION public.recalculate_evaluation_total()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_total NUMERIC(5,2);
+  v_eval_id UUID;
+BEGIN
+  v_eval_id := COALESCE(NEW.evaluation_id, OLD.evaluation_id);
 
-CREATE POLICY "Judges can update own draft evaluation" ON public.evaluations FOR UPDATE TO authenticated
-USING (auth.uid() = judge_id AND status = 'draft')
-WITH CHECK (auth.uid() = judge_id);
+  SELECT COALESCE(SUM(marks), 0) INTO v_total
+  FROM public.evaluation_scores
+  WHERE evaluation_id = v_eval_id;
 
-CREATE POLICY "Judges can manage evaluation scores" ON public.evaluation_scores FOR ALL TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM public.evaluations
-        WHERE evaluations.id = evaluation_scores.evaluation_id
-        AND evaluations.judge_id = auth.uid()
-        AND evaluations.status = 'draft'
-    )
-);
+  UPDATE public.evaluations
+  SET total_marks = v_total, updated_at = now()
+  WHERE id = v_eval_id;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_recalc_total_after_score_change ON public.evaluation_scores;
+CREATE TRIGGER trg_recalc_total_after_score_change
+  AFTER INSERT OR UPDATE OR DELETE ON public.evaluation_scores
+  FOR EACH ROW
+  EXECUTE FUNCTION public.recalculate_evaluation_total();
+
+-- 5. Seed Data (Judges, Mentors, Criteria, Teams, Members, Assignments)
+INSERT INTO public.profiles (id, login_id, pin, name, role, email) VALUES
+  ('a0000000-0000-0000-0000-000000000001', 'JDG10001', '1234', 'Dr. Aris Thorne', 'judge', 'aris.thorne@viceverse.internal'),
+  ('a0000000-0000-0000-0000-000000000002', 'JDG10002', '5678', 'Elena Rostova', 'judge', 'elena.rostova@viceverse.internal'),
+  ('b0000000-0000-0000-0000-000000000001', 'MNR20001', '4321', 'Prof. Marcus Vance', 'mentor', 'marcus.vance@viceverse.internal'),
+  ('b0000000-0000-0000-0000-000000000002', 'MNR20002', '8765', 'Kaelen O''Connor', 'mentor', 'kaelen.oc@viceverse.internal')
+ON CONFLICT (login_id) DO UPDATE SET pin = EXCLUDED.pin, name = EXCLUDED.name, role = EXCLUDED.role;
+
+INSERT INTO public.criteria (id, name, description, max_marks, sort_order) VALUES
+  ('c0000000-0000-0000-0000-000000000001', 'Technical Architecture & Execution', 'Code quality, system stability, modular design, and robust deployment pipelines.', 30, 1),
+  ('c0000000-0000-0000-0000-000000000002', 'Innovation & Algorithmic Rigor', 'Originality of the approach, depth of algorithmic complexity, and creative problem solving.', 25, 2),
+  ('c0000000-0000-0000-0000-000000000003', 'Product Viability & Market Impact', 'Product-market fit, real-world utility, commercial feasibility, and scalable business logic.', 25, 3),
+  ('c0000000-0000-0000-0000-000000000004', 'Presentation & Defense', 'Clarity of the pitch, live demonstration efficacy, and rigorous defense during judge Q&A.', 20, 4)
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.description, max_marks = EXCLUDED.max_marks, sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.teams (id, team_code, name, domain, case_study, canva_url, drive_url, github_url, round_id) VALUES
+  ('t0000000-0000-0000-0000-000000000001', 'TM-AI-01', 'NeuralPulse Systems', 'AI & ML', 'Autonomous edge intelligence for zero-latency medical triage in austere remote field units.', 'https://canva.com/design/sample-neuralpulse', 'https://drive.google.com/drive/folders/sample-neuralpulse', 'https://github.com/viceverse-teams/neuralpulse', 'final-round'),
+  ('t0000000-0000-0000-0000-000000000002', 'TM-CY-02', 'CipherMatrix Protocol', 'Cybersecurity', 'Post-quantum lattice cryptographic key encapsulation for sovereign IoT mesh telemetry.', 'https://canva.com/design/sample-ciphermatrix', 'https://drive.google.com/drive/folders/sample-ciphermatrix', 'https://github.com/viceverse-teams/ciphermatrix', 'final-round'),
+  ('t0000000-0000-0000-0000-000000000003', 'TM-WB-03', 'Aetherium Network', 'Web3 & Cloud', 'Decentralized zk-rollup verification engine for enterprise multi-party settlement ledgers.', 'https://canva.com/design/sample-aetherium', 'https://drive.google.com/drive/folders/sample-aetherium', 'https://github.com/viceverse-teams/aetherium', 'final-round'),
+  ('t0000000-0000-0000-0000-000000000004', 'TM-IO-04', 'SynapseGrid Robotics', 'IoT & Robotics', 'Swarm coordination protocol for sub-surface autonomous pipeline anomaly inspection.', 'https://canva.com/design/sample-synapsegrid', 'https://drive.google.com/drive/folders/sample-synapsegrid', 'https://github.com/viceverse-teams/synapsegrid', 'final-round'),
+  ('t0000000-0000-0000-0000-000000000005', 'TM-HL-05', 'BioSync HealthTech', 'HealthTech', 'Real-time non-invasive biomarker telemetry via localized photonic optical sensor array.', 'https://canva.com/design/sample-biosync', 'https://drive.google.com/drive/folders/sample-biosync', 'https://github.com/viceverse-teams/biosync', 'final-round')
+ON CONFLICT (team_code) DO NOTHING;
+
+INSERT INTO public.team_members (team_id, name, branch, is_lead) VALUES
+  ('t0000000-0000-0000-0000-000000000001', 'Aiden Zhao', 'Computer Science & AI', true),
+  ('t0000000-0000-0000-0000-000000000001', 'Maya Sen', 'Biomedical Engineering', false),
+  ('t0000000-0000-0000-0000-000000000001', 'Tariq Hassan', 'Electrical Engineering', false),
+  ('t0000000-0000-0000-0000-000000000002', 'Vikram Malhotra', 'Cyber Defense & Cryptography', true),
+  ('t0000000-0000-0000-0000-000000000002', 'Chloe Lefevre', 'Information Security', false),
+  ('t0000000-0000-0000-0000-000000000003', 'Lucas Silva', 'Distributed Systems', true),
+  ('t0000000-0000-0000-0000-000000000003', 'Zara Lindqvist', 'Financial Mathematics', false),
+  ('t0000000-0000-0000-0000-000000000004', 'Kenji Sato', 'Mechatronics & Robotics', true),
+  ('t0000000-0000-0000-0000-000000000004', 'Devin Brooks', 'Embedded Systems', false),
+  ('t0000000-0000-0000-0000-000000000005', 'Dr. Sarah Jenkins', 'Bio-Photonics', true),
+  ('t0000000-0000-0000-0000-000000000005', 'Rohan Patel', 'Microfluidics', false);
+
+INSERT INTO public.judge_team_assignments (judge_id, team_id) VALUES
+  ('a0000000-0000-0000-0000-000000000001', 't0000000-0000-0000-0000-000000000001'),
+  ('a0000000-0000-0000-0000-000000000001', 't0000000-0000-0000-0000-000000000002'),
+  ('a0000000-0000-0000-0000-000000000001', 't0000000-0000-0000-0000-000000000003'),
+  ('a0000000-0000-0000-0000-000000000001', 't0000000-0000-0000-0000-000000000004'),
+  ('a0000000-0000-0000-0000-000000000001', 't0000000-0000-0000-0000-000000000005')
+ON CONFLICT DO NOTHING;
+
+--- [END OF SQL SCRIPT] ---
 
 --------------------------------------------------------------------------------
-STEP 5: INSERT SEED DATA (ROUNDS, TEAMS, CRITERIA)
+STEP 3: LOG IN AND TEST
 --------------------------------------------------------------------------------
-Run this in SQL Editor to seed ready-to-test data:
+Restart your dev server: `npm run dev`
+Open http://localhost:3000
 
--- Seed Rounds
-INSERT INTO public.rounds (round_number, round_name, description, is_active) VALUES
-(1, 'Round 1: Idea Pitch & Problem Statement', 'Evaluation of concept clarity, problem relevance, and innovation', true),
-(2, 'Round 2: Prototype & Technical Implementation', 'Evaluation of working prototype, architecture, and UI/UX', true),
-(3, 'Round 3: Grand Finale & Business Viability', 'Final stage evaluation and Q&A', false)
-ON CONFLICT (round_number) DO NOTHING;
+Judge Login:
+- Login ID: JDG10001
+- PIN: 1234
 
--- Seed Teams
-INSERT INTO public.teams (team_id, team_name, domain, case_study, canva_link, drive_link) VALUES
-('VV-101', 'ByteCrafters', 'Artificial Intelligence', 'Automated Medical Image Triage System', 'https://www.canva.com/design/example1', 'https://drive.google.com/drive/folders/example1'),
-('VV-102', 'NeuroPulse', 'HealthTech', 'Non-Invasive Glucose Monitoring Platform', 'https://www.canva.com/design/example2', 'https://drive.google.com/drive/folders/example2'),
-('VV-103', 'BlockShield', 'Cybersecurity & Web3', 'Decentralized Identity Verification for Universities', 'https://www.canva.com/design/example3', NULL),
-('VV-104', 'EcoSync', 'CleanTech / IoT', 'Smart Urban Waste Management with Route Optimization', 'https://www.canva.com/design/example4', 'https://drive.google.com/drive/folders/example4'),
-('VV-105', 'CodeCatalyst', 'FinTech', 'Micro-Lending Protocol for Gig Workers', 'https://www.canva.com/design/example5', NULL)
-ON CONFLICT (team_id) DO NOTHING;
-
--- Seed Team Members
-INSERT INTO public.team_members (team_id, member_name, branch, is_lead)
-SELECT id, 'Rahul Sharma', 'CSE', true FROM public.teams WHERE team_id = 'VV-101'
-UNION ALL
-SELECT id, 'Priya Nair', 'AIML', false FROM public.teams WHERE team_id = 'VV-101'
-UNION ALL
-SELECT id, 'Karthik Rao', 'ISE', false FROM public.teams WHERE team_id = 'VV-101'
-UNION ALL
-SELECT id, 'Sneha Patel', 'ECE', true FROM public.teams WHERE team_id = 'VV-102'
-UNION ALL
-SELECT id, 'Aditya Joshi', 'CSE', false FROM public.teams WHERE team_id = 'VV-102'
-UNION ALL
-SELECT id, 'Vikram Verma', 'CyberSecurity', true FROM public.teams WHERE team_id = 'VV-103'
-UNION ALL
-SELECT id, 'Ananya Sen', 'ISE', false FROM public.teams WHERE team_id = 'VV-103';
-
--- Map Teams to Round 1
-INSERT INTO public.round_teams (round_id, team_id)
-SELECT r.id, t.id
-FROM public.rounds r, public.teams t
-WHERE r.round_number = 1
-ON CONFLICT (round_id, team_id) DO NOTHING;
-
--- Seed Evaluation Criteria for Round 1
-INSERT INTO public.evaluation_criteria (round_id, criteria_name, description, max_marks, display_order)
-SELECT r.id, 'Problem Understanding & Relevance', 'Clarity of the defined issue and target audience', 10, 1
-FROM public.rounds r WHERE r.round_number = 1
-UNION ALL
-SELECT r.id, 'Innovation & Originality', 'Uniqueness and differentiation of the proposed solution', 15, 2
-FROM public.rounds r WHERE r.round_number = 1
-UNION ALL
-SELECT r.id, 'Feasibility & Technical Approach', 'Soundness of technical architecture and tools used', 15, 3
-FROM public.rounds r WHERE r.round_number = 1
-UNION ALL
-SELECT r.id, 'Presentation & Q&A', 'Delivery, slide clarity (Canva link), and answer confidence', 10, 4
-FROM public.rounds r WHERE r.round_number = 1;
-
---------------------------------------------------------------------------------
-STEP 6: CREATE A JUDGE USER IN SUPABASE AUTH
---------------------------------------------------------------------------------
-1. In Supabase Dashboard, go to Authentication -> Users.
-2. Click "Add user" -> "Create user".
-3. Enter Judge's Email (e.g., `judge@viceverse.com`) and Password.
-4. Auto-confirm user: Yes.
-5. In the SQL Editor, verify or set their role to 'judge':
-   UPDATE public.profiles
-   SET role = 'judge', full_name = 'Judge Panel 1'
-   WHERE email = 'judge@viceverse.com';
-
-================================================================================
-Done! All tables, columns, relations, RLS, seeds, and realtime are configured.
-================================================================================
+Mentor Login:
+- Login ID: MNR20001
+- PIN: 4321

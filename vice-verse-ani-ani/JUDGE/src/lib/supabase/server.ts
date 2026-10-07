@@ -1,11 +1,13 @@
+import { getSupabaseUrl, getSupabaseAnonKey } from "./client";
+
 // Server-side Supabase Client stub (cookies-based)
 export function createServerClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
 
   if (!url || !key) {
     if (process.env.NEXT_PUBLIC_DATA_SOURCE === "supabase") {
-      throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY on server environment.");
+      throw new Error("Missing Supabase URL or Anon Key on server environment.");
     }
   }
 

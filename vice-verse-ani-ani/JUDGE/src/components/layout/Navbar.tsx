@@ -16,15 +16,21 @@ import {
   Users,
 } from "lucide-react";
 
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isJudge, isMentor, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isSupabase = process.env.NEXT_PUBLIC_DATA_SOURCE === "supabase";
+  const [isSupabase, setIsSupabase] = useState(false);
 
   useEffect(() => {
+    setIsSupabase(
+      process.env.NEXT_PUBLIC_DATA_SOURCE === "supabase" ||
+      (process.env.NEXT_PUBLIC_DATA_SOURCE !== "mock" && isSupabaseConfigured())
+    );
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 8);
     };

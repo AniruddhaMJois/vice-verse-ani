@@ -2,14 +2,17 @@
 -- VICEVERSE - SUPABASE SEED DATA (FINAL ROUND)
 -- ==================================================================
 
--- 1. Profiles
-INSERT INTO public.profiles (id, login_id, name, role, email)
+-- 1. Profiles (Judges and Mentors with PIN credentials)
+INSERT INTO public.profiles (id, login_id, pin, name, role, email)
 VALUES
-  ('a0000000-0000-0000-0000-000000000001', 'JDG10001', 'Dr. Aris Thorne', 'judge', 'aris.thorne@viceverse.internal'),
-  ('a0000000-0000-0000-0000-000000000002', 'JDG10002', 'Elena Rostova', 'judge', 'elena.rostova@viceverse.internal'),
-  ('b0000000-0000-0000-0000-000000000001', 'MNR20001', 'Prof. Marcus Vance', 'mentor', 'marcus.vance@viceverse.internal'),
-  ('b0000000-0000-0000-0000-000000000002', 'MNR20002', 'Kaelen O''Connor', 'mentor', 'kaelen.oc@viceverse.internal')
-ON CONFLICT (login_id) DO NOTHING;
+  ('a0000000-0000-0000-0000-000000000001', 'JDG10001', '1234', 'Dr. Aris Thorne', 'judge', 'aris.thorne@viceverse.internal'),
+  ('a0000000-0000-0000-0000-000000000002', 'JDG10002', '5678', 'Elena Rostova', 'judge', 'elena.rostova@viceverse.internal'),
+  ('b0000000-0000-0000-0000-000000000001', 'MNR20001', '4321', 'Prof. Marcus Vance', 'mentor', 'marcus.vance@viceverse.internal'),
+  ('b0000000-0000-0000-0000-000000000002', 'MNR20002', '8765', 'Kaelen O''Connor', 'mentor', 'kaelen.oc@viceverse.internal')
+ON CONFLICT (login_id) DO UPDATE SET
+  pin = EXCLUDED.pin,
+  name = EXCLUDED.name,
+  role = EXCLUDED.role;
 
 -- 2. Criteria (Final Round 100 Marks Rubric)
 INSERT INTO public.criteria (id, name, description, max_marks, sort_order)
@@ -18,7 +21,11 @@ VALUES
   ('c0000000-0000-0000-0000-000000000002', 'Innovation & Algorithmic Rigor', 'Originality of the approach, depth of algorithmic complexity, and creative problem solving.', 25, 2),
   ('c0000000-0000-0000-0000-000000000003', 'Product Viability & Market Impact', 'Product-market fit, real-world utility, commercial feasibility, and scalable business logic.', 25, 3),
   ('c0000000-0000-0000-0000-000000000004', 'Presentation & Defense', 'Clarity of the pitch, live demonstration efficacy, and rigorous defense during judge Q&A.', 20, 4)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  max_marks = EXCLUDED.max_marks,
+  sort_order = EXCLUDED.sort_order;
 
 -- 3. Teams (Final Round Dossiers)
 INSERT INTO public.teams (id, team_code, name, domain, case_study, canva_url, drive_url, github_url, round_id)
@@ -49,7 +56,7 @@ VALUES
   ('t0000000-0000-0000-0000-000000000005', 'Dr. Sarah Jenkins', 'Bio-Photonics', true),
   ('t0000000-0000-0000-0000-000000000005', 'Rohan Patel', 'Microfluidics', false);
 
--- 5. Judge Assignments (Assign teams 1, 2, 3, 4, 5 to Judge 1)
+-- 5. Judge Assignments (Assign all teams to Judge JDG10001)
 INSERT INTO public.judge_team_assignments (judge_id, team_id)
 VALUES
   ('a0000000-0000-0000-0000-000000000001', 't0000000-0000-0000-0000-000000000001'),

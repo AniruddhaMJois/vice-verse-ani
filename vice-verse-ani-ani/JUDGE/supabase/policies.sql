@@ -2,7 +2,7 @@
 -- VICEVERSE - SUPABASE ROW LEVEL SECURITY (RLS) POLICIES & TRIGGERS
 -- ==================================================================
 
--- Enable RLS on all core tables
+-- 1. Enable RLS on all core tables
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
@@ -11,38 +11,40 @@ ALTER TABLE public.judge_team_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.evaluations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.evaluation_scores ENABLE ROW LEVEL SECURITY;
 
--- Helper function to get current user's profile role and profile id
-CREATE OR REPLACE FUNCTION public.get_auth_profile()
-RETURNS TABLE (profile_id UUID, role TEXT) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT id, profiles.role
-  FROM public.profiles
-  WHERE id = auth.uid() OR email = auth.email()
-  LIMIT 1;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- 2. Drop existing policies to prevent conflicts
+DROP POLICY IF EXISTS "Allow public read on profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Allow read on criteria for all authenticated" ON public.criteria;
+DROP POLICY IF EXISTS "Allow public read on criteria" ON public.criteria;
+DROP POLICY IF EXISTS "Allow read on teams" ON public.teams;
+DROP POLICY IF EXISTS "Allow read on team_members" ON public.team_members;
+DROP POLICY IF EXISTS "Allow read on judge_team_assignments" ON public.judge_team_assignments;
+DROP POLICY IF EXISTS "Mentors can read all evaluations" ON public.evaluations;
+DROP POLICY IF EXISTS "Judges can read own evaluations" ON public.evaluations;
+DROP POLICY IF EXISTS "Judges can insert own evaluations" ON public.evaluations;
+DROP POLICY IF EXISTS "Judges can update own draft evaluations" ON public.evaluations;
+DROP POLICY IF EXISTS "Allow read on evaluations" ON public.evaluations;
+DROP POLICY IF EXISTS "Allow insert on evaluations" ON public.evaluations;
+DROP POLICY IF EXISTS "Allow update on evaluations" ON public.evaluations;
+DROP POLICY IF EXISTS "Allow read on evaluation_scores" ON public.evaluation_scores;
+DROP POLICY IF EXISTS "Allow insert on evaluation_scores" ON public.evaluation_scores;
+DROP POLICY IF EXISTS "Allow update on evaluation_scores" ON public.evaluation_scores;
+DROP POLICY IF EXISTS "Allow delete on evaluation_scores" ON public.evaluation_scores;
 
 -- ------------------------------------------------------------------
--- 1. PROFILES POLICIES
+-- 3. PERMISSIVE POLICIES FOR HACKATHON EVALUATION PORTAL
 -- ------------------------------------------------------------------
--- Users can view all profiles (needed to see judge/mentor names)
+
+-- Profiles: Public select for fast PIN/Login ID verification
 CREATE POLICY "Allow public read on profiles"
   ON public.profiles FOR SELECT
   USING (true);
 
--- ------------------------------------------------------------------
--- 2. CRITERIA POLICIES
--- ------------------------------------------------------------------
--- Criteria is readable by any authenticated judge or mentor
-CREATE POLICY "Allow read on criteria for all authenticated"
+-- Criteria: Public read for rubric
+CREATE POLICY "Allow public read on criteria"
   ON public.criteria FOR SELECT
   USING (true);
 
--- ------------------------------------------------------------------
--- 3. TEAMS & TEAM MEMBERS POLICIES
--- ------------------------------------------------------------------
--- Mentors can view all teams; Judges can view their assigned teams (or all teams for roster preview)
+-- Teams and Members: Public read
 CREATE POLICY "Allow read on teams"
   ON public.teams FOR SELECT
   USING (true);
@@ -55,128 +57,55 @@ CREATE POLICY "Allow read on judge_team_assignments"
   ON public.judge_team_assignments FOR SELECT
   USING (true);
 
--- ------------------------------------------------------------------
--- 4. EVALUATIONS POLICIES
--- ------------------------------------------------------------------
--- Mentors: Read-only access to all evaluations
-CREATE POLICY "Mentors can read all evaluations"
+-- Evaluations: Read, Insert, Update
+CREATE POLICY "Allow read on evaluations"
   ON public.evaluations FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE (p.id = auth.uid() OR p.email = auth.email()) AND p.role = 'mentor'
-    )
-  );
+  USING (true);
 
--- Judges: Read their own evaluations only
-CREATE POLICY "Judges can read own evaluations"
-  ON public.evaluations FOR SELECT
-  USING (
-    judge_id IN (
-      SELECT id FROM public.profiles
-      WHERE (id = auth.uid() OR email = auth.email()) AND role = 'judge'
-    )
-  );
-
--- Judges: Insert own evaluations
-CREATE POLICY "Judges can insert own evaluations"
+CREATE POLICY "Allow insert on evaluations"
   ON public.evaluations FOR INSERT
-  WITH CHECK (
-    judge_id IN (
-      SELECT id FROM public.profiles
-      WHERE (id = auth.uid() OR email = auth.email()) AND role = 'judge'
-    )
-  );
+  WITH CHECK (true);
 
--- Judges: Update own evaluations ONLY IF not submitted
-CREATE POLICY "Judges can update own draft evaluations"
+CREATE POLICY "Allow update on evaluations"
   ON public.evaluations FOR UPDATE
-  USING (
-    judge_id IN (
-      SELECT id FROM public.profiles
-      WHERE (id = auth.uid() OR email = auth.email()) AND role = 'judge'
-    )
-    AND status <> 'submitted'
-  )
-  WITH CHECK (
-    judge_id IN (
-      SELECT id FROM public.profiles
-      WHERE (id = auth.uid() OR email = auth.email()) AND role = 'judge'
-    )
-  );
+  USING (true)
+  WITH CHECK (true);
 
--- ------------------------------------------------------------------
--- 5. EVALUATION SCORES POLICIES
--- ------------------------------------------------------------------
--- Mentors can read all scores
-CREATE POLICY "Mentors can read all evaluation scores"
+-- Evaluation Scores: Full management for grading
+CREATE POLICY "Allow read on evaluation_scores"
   ON public.evaluation_scores FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE (p.id = auth.uid() OR p.email = auth.email()) AND p.role = 'mentor'
-    )
-  );
+  USING (true);
 
--- Judges can read own evaluation scores
-CREATE POLICY "Judges can read own evaluation scores"
-  ON public.evaluation_scores FOR SELECT
-  USING (
-    evaluation_id IN (
-      SELECT e.id FROM public.evaluations e
-      JOIN public.profiles p ON p.id = e.judge_id
-      WHERE (p.id = auth.uid() OR p.email = auth.email()) AND p.role = 'judge'
-    )
-  );
-
--- Judges can insert/update scores for unsubmitted evaluations
-CREATE POLICY "Judges can insert own scores"
+CREATE POLICY "Allow insert on evaluation_scores"
   ON public.evaluation_scores FOR INSERT
-  WITH CHECK (
-    evaluation_id IN (
-      SELECT e.id FROM public.evaluations e
-      JOIN public.profiles p ON p.id = e.judge_id
-      WHERE (p.id = auth.uid() OR p.email = auth.email()) AND p.role = 'judge' AND e.status <> 'submitted'
-    )
-  );
+  WITH CHECK (true);
 
-CREATE POLICY "Judges can update own scores"
+CREATE POLICY "Allow update on evaluation_scores"
   ON public.evaluation_scores FOR UPDATE
-  USING (
-    evaluation_id IN (
-      SELECT e.id FROM public.evaluations e
-      JOIN public.profiles p ON p.id = e.judge_id
-      WHERE (p.id = auth.uid() OR p.email = auth.email()) AND p.role = 'judge' AND e.status <> 'submitted'
-    )
-  );
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY "Allow delete on evaluation_scores"
+  ON public.evaluation_scores FOR DELETE
+  USING (true);
 
 -- ------------------------------------------------------------------
--- 6. TRIGGERS: SCORE VALIDATION & TOTAL RECALCULATION
+-- 4. REALTIME PUBLICATION
 -- ------------------------------------------------------------------
--- Validate mark does not exceed criteria max_marks
-CREATE OR REPLACE FUNCTION public.check_score_validity()
-RETURNS TRIGGER AS $$
-DECLARE
-  v_max_marks INTEGER;
+-- Enable realtime events on evaluations table
+DO $$
 BEGIN
-  SELECT max_marks INTO v_max_marks
-  FROM public.criteria
-  WHERE id = NEW.criterion_id;
-
-  IF NEW.marks > v_max_marks THEN
-    RAISE EXCEPTION 'Mark % exceeds maximum allowed % for criterion %', NEW.marks, v_max_marks, NEW.criterion_id;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'evaluations'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.evaluations;
   END IF;
+END $$;
 
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_validate_score
-  BEFORE INSERT OR UPDATE ON public.evaluation_scores
-  FOR EACH ROW
-  EXECUTE FUNCTION public.check_score_validity();
-
--- Automatically recalculate evaluation total_marks
+-- ------------------------------------------------------------------
+-- 5. TRIGGER: AUTOMATIC TOTAL MARKS RECALCULATION
+-- ------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.recalculate_evaluation_total()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -197,6 +126,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_recalc_total_after_score_change ON public.evaluation_scores;
 CREATE TRIGGER trg_recalc_total_after_score_change
   AFTER INSERT OR UPDATE OR DELETE ON public.evaluation_scores
   FOR EACH ROW

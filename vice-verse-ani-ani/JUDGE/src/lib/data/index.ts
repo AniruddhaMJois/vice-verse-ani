@@ -22,8 +22,12 @@ import {
   SupabaseActivityRepository,
   SupabaseRealtimeService,
 } from "./supabase";
+import { isSupabaseConfigured } from "../supabase/client";
 
-const isSupabase = process.env.NEXT_PUBLIC_DATA_SOURCE === "supabase";
+// Activate Supabase if explicit flag is set OR if valid URL/ProjectId + Anon Key are detected
+const isSupabase =
+  process.env.NEXT_PUBLIC_DATA_SOURCE === "supabase" ||
+  (process.env.NEXT_PUBLIC_DATA_SOURCE !== "mock" && isSupabaseConfigured());
 
 export const authRepo: AuthRepository = isSupabase
   ? new SupabaseAuthRepository()

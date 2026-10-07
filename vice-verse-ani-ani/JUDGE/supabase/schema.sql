@@ -2,10 +2,11 @@
 -- VICEVERSE - SUPABASE DATABASE SCHEMA (FINAL ROUND SYSTEM)
 -- ==================================================================
 
--- 1. Profiles Table (Jury and Mentors)
+-- 1. Profiles Table (Jury and Mentors with PIN Authentication)
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   login_id TEXT UNIQUE NOT NULL,
+  pin TEXT NOT NULL DEFAULT '1234',
   name TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('judge', 'mentor')),
   email TEXT,
@@ -77,7 +78,7 @@ CREATE TABLE IF NOT EXISTS public.evaluation_scores (
   UNIQUE (evaluation_id, criterion_id)
 );
 
--- Indexes for performance
+-- Indexes for high performance
 CREATE INDEX IF NOT EXISTS idx_teams_domain ON public.teams(domain);
 CREATE INDEX IF NOT EXISTS idx_evaluations_status ON public.evaluations(status);
 CREATE INDEX IF NOT EXISTS idx_evaluations_judge ON public.evaluations(judge_id);
