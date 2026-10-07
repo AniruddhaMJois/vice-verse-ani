@@ -1,0 +1,401 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Base neutrals */
+    --bg: #02040a;
+    --bg-elevated: #05070d;
+    --surface: #07090f;
+    --surface-2: #0d1018;
+    --surface-3: #141826;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --border-faint: rgba(255, 255, 255, 0.04);
+    --text: #f5f7fa;
+    --text-muted: #8b93a7;
+    --text-faint: #5a6175;
+    --text-inverse: #02040a;
+
+    /* PINK family (human voice / intent / nav / focus / judge) */
+    --accent: #ff2e9a;
+    --accent-hot: #ff5cb8;
+    --accent-deep: #8a0f52;
+    --accent-bg: rgba(255, 46, 154, 0.12);
+    --accent-border: rgba(255, 46, 154, 0.38);
+
+    /* GREEN family (machine voice / live / success / verified / mentor) */
+    --signal: #00ff41;
+    --signal-lime: #b8ff3c;
+    --signal-dim: #00b84a;
+    --signal-deep: #003b00;
+    --signal-bg: rgba(0, 255, 65, 0.1);
+    --signal-border: rgba(0, 255, 65, 0.34);
+
+    /* Bridges and helpers */
+    --accent-2: #7b3ff2; /* violet bridge */
+    --info: #22d3ee;     /* cyan bridge + info */
+    --info-bg: rgba(34, 211, 238, 0.12);
+    --accent-3: #ff8a3d; /* orange for art / draft base */
+    --warning: #ffb020;  /* Saved as Draft */
+    --warning-bg: rgba(255, 176, 32, 0.12);
+    --danger: #ff4d4d;   /* Red-orange */
+    --danger-bg: rgba(255, 77, 77, 0.12);
+    --neutral: #8b93a7;  /* Not Evaluated */
+    --neutral-bg: rgba(139, 147, 167, 0.12);
+    --locked: #5a6175;
+    --locked-bg: rgba(90, 97, 117, 0.12);
+
+    /* Gradients */
+    --grad-dual: linear-gradient(90deg, #ff2e9a 0%, #7b3ff2 32%, #22d3ee 66%, #00ff41 100%);
+    --grad-dual-d: linear-gradient(135deg, #ff2e9a 0%, #7b3ff2 32%, #22d3ee 66%, #00ff41 100%);
+    --grad-pink: linear-gradient(135deg, #ff8a3d 0%, #ff2e9a 55%, #b02bff 100%);
+    --grad-green: linear-gradient(135deg, #b8ff3c 0%, #00ff41 50%, #00b84a 100%);
+    --grad-strip: linear-gradient(90deg, #ff2e9a 0%, #7b3ff2 32%, #22d3ee 66%, #00ff41 100%);
+
+    /* Glows */
+    --glow-pink: 0 0 0 4px rgba(255, 46, 154, 0.16), 0 0 26px rgba(255, 46, 154, 0.28);
+    --glow-green: 0 0 0 4px rgba(0, 255, 65, 0.14), 0 0 26px rgba(0, 255, 65, 0.26);
+    --glow-dual: -14px 0 34px rgba(255, 46, 154, 0.16), 14px 0 34px rgba(0, 255, 65, 0.16);
+    --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 8px 30px rgba(0, 0, 0, 0.5);
+    --shadow-pop: 0 20px 60px rgba(0, 0, 0, 0.6);
+
+    /* Nebula Tokens */
+    /* PINK ramp (left) */
+    --nebula-void: #03050A;
+    --nebula-haze: #0A1A2E;
+    --nebula-dusk: #2A1450;
+    --nebula-wine: #6B0F45;
+    --nebula-crimson: #E0207F;
+    --nebula-hot: #FF5CB8;
+    --nebula-star: #FFD6EC;
+
+    /* GREEN ramp (right) */
+    --nebula-g-void: #02060A;
+    --nebula-g-haze: #0A2430;
+    --nebula-g-dusk: #0C3A33;
+    --nebula-g-wine: #0E5A3A;
+    --nebula-g-crimson: #12B85A;
+    --nebula-g-hot: #6DFF9A;
+    --nebula-g-star: #D9FFE4;
+
+    /* BRIDGE (seam transition) */
+    --nebula-bridge-a: #7B3FF2;
+    --nebula-bridge-b: #22D3EE;
+
+    /* SEAM CONTROLS */
+    --nebula-seam: 0.5;
+    --nebula-seam-width: 0.22;
+    --nebula-seam-wobble: 0.06;
+
+    /* Radii */
+    --radius-control: 4px;
+    --radius-card: 12px;
+    --radius-dialog: 12px;
+
+    /* Backward compatibility aliases */
+    --neon-pink: var(--accent);
+    --neon-magenta: #d63af9;
+    --neon-purple: var(--accent-2);
+    --neon-blue: #3b82f6;
+    --neon-cyan: var(--info);
+    --neon-orange: var(--accent-3);
+    --neon-green: var(--signal);
+    --success: var(--signal);
+    --success-bg: var(--signal-bg);
+
+    /* Shadcn compatibility bridge */
+    --background: var(--bg);
+    --foreground: var(--text);
+    --card: var(--surface);
+    --card-foreground: var(--text);
+    --popover: var(--surface-2);
+    --popover-foreground: var(--text);
+    --primary: var(--accent);
+    --primary-foreground: var(--text-inverse);
+    --secondary: var(--surface-2);
+    --secondary-foreground: var(--text);
+    --muted: var(--surface-2);
+    --muted-foreground: var(--text-muted);
+    --destructive: var(--danger);
+    --destructive-foreground: var(--text-inverse);
+    --input: var(--border);
+    --ring: var(--accent);
+    --radius: 4px;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--text-inverse);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  caret-color: var(--accent);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Monospace default typography */
+code, kbd, samp, pre, .font-mono {
+  font-family: var(--font-mono), "JetBrains Mono", "Space Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Script accent styling */
+.font-script {
+  font-family: var(--font-script), "Pacifico", "Yellowtail", cursive;
+}
+
+/* Script chromatic text shadow */
+.script-chromatic {
+  text-shadow: 1px 1px 0px rgba(0, 255, 65, 0.45);
+}
+
+/* Framed vertical container */
+.framed-column {
+  border-left: 1px solid var(--border-faint);
+  border-right: 1px solid var(--border-faint);
+}
+
+/* Ambient Breathing Glow */
+@keyframes glow-breathe {
+  0% {
+    transform: scale(1) translate(-50%, 0);
+    opacity: 0.82;
+  }
+  100% {
+    transform: scale(1.06) translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.animate-glow-breathe {
+  animation: glow-breathe 8s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+/* Corner Drift animations */
+@keyframes drift-slow {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, -20px) scale(1.08);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes drift-reverse {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-30px, 20px) scale(1.06);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+.animate-drift-slow {
+  animation: drift-slow 18s ease-in-out infinite alternate;
+}
+
+.animate-drift-reverse {
+  animation: drift-reverse 18s ease-in-out infinite alternate;
+}
+
+/* Realtime green wash flash */
+@keyframes realtime-row-flash-green {
+  0% {
+    background-color: rgba(0, 255, 65, 0.22);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-realtime-flash {
+  animation: realtime-row-flash-green 1.2s ease-out forwards;
+}
+
+/* Shimmer animation for skeletons */
+@keyframes skeleton-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: skeleton-sweep 1.4s infinite linear;
+  content: "";
+}
+
+/* Marquee infinite scroll */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  animation: marquee 35s linear infinite;
+  will-change: transform;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Film Grain Overlay */
+.film-grain-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+}
+
+/* Scanlines overlay (2% opacity) */
+.scanlines-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.025;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.75) 50%
+  ),
+  linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 3px, 6px 100%;
+}
+
+/* Chromatic Glitch effect on hover */
+.chromatic-glitch:hover {
+  animation: chromatic-split 120ms ease-out;
+}
+
+@keyframes chromatic-split {
+  0% {
+    text-shadow: none;
+    transform: translate(0);
+  }
+  25% {
+    text-shadow: -2px 0 var(--accent), 2px 0 var(--signal);
+    transform: translate(-1px, 1px);
+  }
+  50% {
+    text-shadow: 2px 0 var(--accent), -2px 0 var(--signal);
+    transform: translate(1px, -1px);
+  }
+  75% {
+    text-shadow: -1px 0 var(--accent), 1px 0 var(--signal);
+    transform: translate(0, 0);
+  }
+  100% {
+    text-shadow: none;
+    transform: translate(0);
+  }
+}
+
+/* Focus rings with double ring definition */
+.focus-neon-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent), 0 0 0 5px var(--signal), var(--glow-pink);
+}
+
+/* Dual glow border helper */
+.border-grad-dual {
+  border-image: var(--grad-dual) 1;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 9999px;
+  border: 1px solid var(--border-faint);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--signal-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .chromatic-glitch:hover {
+    animation: none !important;
+    text-shadow: none !important;
+  }
+}
