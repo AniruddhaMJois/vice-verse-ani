@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -11,6 +11,7 @@ import { LinkChip } from "@/components/patterns/LinkChip";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { NavigationBar } from "@/components/layout/NavigationBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import {
@@ -22,34 +23,14 @@ import {
   ChevronDown,
   ArrowUpDown,
   ExternalLink,
-  ShieldAlert,
-  Sparkles,
-  Check,
-  X,
-  SlidersHorizontal,
   FolderOpen,
-  Users,
-  Eye,
-  Edit3,
-  Cpu,
-  Globe,
-  Shield,
-  HeartPulse,
-  Radio,
+  X,
+  FileText,
 } from "lucide-react";
 
 interface TeamsDossierPageProps {
   portal: "judge" | "mentor";
 }
-
-// Track domain icons definition
-const DOMAIN_ICONS: Record<string, React.ReactNode> = {
-  "AI & ML": <Cpu className="w-4 h-4 text-accent" />,
-  "Cybersecurity": <Shield className="w-4 h-4 text-signal" />,
-  "Web3 & Cloud": <Globe className="w-4 h-4 text-cyan-400" />,
-  "IoT & Robotics": <Radio className="w-4 h-4 text-purple-400" />,
-  "HealthTech": <HeartPulse className="w-4 h-4 text-emerald-400" />,
-};
 
 export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
   const router = useRouter();
@@ -65,14 +46,10 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "cards" | "board">("table");
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
   const [sortField, setSortField] = useState<keyof Team>("teamCode");
   const [sortAsc, setSortAsc] = useState(true);
-  const [draggingDomain, setDraggingDomain] = useState<string | null>(null);
-  const [isDropZoneActive, setIsDropZoneActive] = useState(false);
-  const [recentPatchedId, setRecentPatchedId] = useState<string | null>(null);
 
   // Debounce search query
   useEffect(() => {
@@ -163,19 +140,13 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
     return teams.filter((t) => {
       const status = statuses[t.id] || "not_evaluated";
 
-      // Search
+      // Search across Code, Name, Case Study
       if (debouncedSearch) {
         const query = debouncedSearch.toLowerCase();
         const matchesCode = t.teamCode.toLowerCase().includes(query);
         const matchesName = t.name.toLowerCase().includes(query);
         const matchesCase = t.caseStudy.toLowerCase().includes(query);
-        const matchesDomain = t.domain.toLowerCase().includes(query);
-        if (!matchesCode && !matchesName && !matchesCase && !matchesDomain) return false;
-      }
-
-      // Domain filter
-      if (selectedDomain && t.domain !== selectedDomain) {
-        return false;
+        if (!matchesCode && !matchesName && !matchesCase) return false;
       }
 
       // Status filter
@@ -193,7 +164,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
       if (valA > valB) return sortAsc ? 1 : -1;
       return 0;
     });
-  }, [teams, statuses, debouncedSearch, selectedDomain, statusFilter, sortField, sortAsc]);
+  }, [teams, statuses, debouncedSearch, statusFilter, sortField, sortAsc]);
 
   // Status counts for segmented control
   const statusCounts = useMemo(() => {
@@ -207,13 +178,6 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
     return counts;
   }, [teams, statuses]);
 
-  // Distinct Domains for Track Dock
-  const availableDomains = useMemo(() => {
-    const set = new Set<string>();
-    teams.forEach((t) => set.add(t.domain));
-    return Array.from(set);
-  }, [teams]);
-
   const handleSort = (field: keyof Team) => {
     if (sortField === field) {
       setSortAsc(!sortAsc);
@@ -223,29 +187,9 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
     }
   };
 
-  // Drag and drop for track dock
-  const handleDragStart = (domain: string) => {
-    setDraggingDomain(domain);
-  };
-
-  const handleDragEnd = () => {
-    setDraggingDomain(null);
-    setIsDropZoneActive(false);
-  };
-
-  const handleDropOnZone = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (draggingDomain) {
-      setSelectedDomain(draggingDomain);
-    }
-    setDraggingDomain(null);
-    setIsDropZoneActive(false);
-  };
-
   const clearFilters = () => {
     setSearchQuery("");
     setDebouncedSearch("");
-    setSelectedDomain(null);
     setStatusFilter("all");
   };
 
@@ -256,20 +200,27 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
       <main className="relative z-10 max-w-[1280px] w-full mx-auto px-4 sm:px-6 py-8 flex-1 space-y-6">
         {/* Breadcrumbs & Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 pb-5">
-          <div className="space-y-1">
-            <Breadcrumbs
-              items={[
-                { label: "HOME", href: "/" },
-                {
-                  label: "FINAL ROUND",
-                  href: isJudgePortal ? "/judge/dashboard" : "/mentor/dashboard",
-                },
-                { label: "TEAMS & DOSSIER" },
-              ]}
-            />
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <NavigationBar
+                homeHref={isJudgePortal ? "/judge/dashboard" : "/mentor/dashboard"}
+                backHref={isJudgePortal ? "/judge/dashboard" : "/mentor/dashboard"}
+              />
+              <div className="h-4 w-[1px] bg-border-strong hidden sm:block" />
+              <Breadcrumbs
+                items={[
+                  { label: "HOME", href: "/" },
+                  {
+                    label: "FINAL ROUND",
+                    href: isJudgePortal ? "/judge/dashboard" : "/mentor/dashboard",
+                  },
+                  { label: "TEAMS & DOSSIER" },
+                ]}
+              />
+            </div>
             <div className="flex items-center gap-2 pt-1">
               <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                Team Identifier & Dossier
+                Team Identifier &amp; Dossier
               </h1>
               <span className="font-mono text-xs text-text-muted px-2.5 py-0.5 rounded bg-surface-2 border border-border">
                 {filteredTeams.length} / {teams.length} TEAMS
@@ -282,9 +233,8 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
             </p>
           </div>
 
-          {/* View Toggles & Density */}
+          {/* View Toggles */}
           <div className="flex items-center gap-2 self-start md:self-auto">
-            {/* Table / Cards / Board segmented toggle */}
             <div className="flex items-center p-1 bg-surface-2 border border-border rounded-[6px]">
               <button
                 onClick={() => handleViewModeChange("table")}
@@ -328,67 +278,9 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
           </div>
         </div>
 
-        {/* 2. Track Dock (Movable/Draggable Track Icons) */}
-        <section className="p-4 bg-surface/80 backdrop-blur-md rounded-card border border-border space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-[1px] bg-signal inline-block shadow-[0_0_4px_var(--signal)]" />
-              <span className="font-mono text-xs uppercase tracking-wider text-text-muted font-semibold">
-                TRACK DOCK // DRAG ICON TO FILTER
-              </span>
-            </div>
-
-            {selectedDomain && (
-              <button
-                onClick={() => setSelectedDomain(null)}
-                className="flex items-center gap-1 text-[11px] font-mono text-accent hover:underline"
-              >
-                <X className="w-3 h-3" /> Clear Domain Filter
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3 overflow-x-auto pb-1">
-            {availableDomains.map((dom) => {
-              const isSelected = selectedDomain === dom;
-              const isDraggingThis = draggingDomain === dom;
-
-              return (
-                <div
-                  key={dom}
-                  draggable
-                  onDragStart={() => handleDragStart(dom)}
-                  onDragEnd={handleDragEnd}
-                  onClick={() => setSelectedDomain(isSelected ? null : dom)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      setSelectedDomain(isSelected ? null : dom);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  aria-pressed={isSelected}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-[6px] border cursor-grab active:cursor-grabbing select-none transition-all duration-200 shrink-0 font-mono text-xs ${
-                    isSelected
-                      ? "bg-signal/15 border-signal text-signal shadow-glow-green font-bold"
-                      : isDraggingThis
-                      ? "border-accent bg-accent/20 shadow-glow-pink opacity-80"
-                      : "bg-surface-2 border-border text-text-muted hover:border-accent hover:text-white"
-                  }`}
-                  title="Click or drag onto table to filter"
-                >
-                  <span className="shrink-0">{DOMAIN_ICONS[dom] || <Cpu className="w-4 h-4" />}</span>
-                  <span>{dom}</span>
-                  {isSelected && <Check className="w-3 h-3 text-signal ml-1" />}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* 3. Filter Bar (Search + Status Segmented Control) */}
+        {/* Filter Bar (Search + Status Segmented Control) */}
         <section className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          {/* Search Box with Pink Underline */}
+          {/* Search Box */}
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3.5 top-3 w-4 h-4 text-text-faint" />
             <input
@@ -408,7 +300,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
             )}
           </div>
 
-          {/* Status Segmented Control with Odometer counts */}
+          {/* Status Segmented Control with counts */}
           <div className="flex items-center p-1 bg-surface-2 border border-border rounded-[6px] overflow-x-auto shrink-0">
             {[
               { key: "all", label: "All", count: statusCounts.all },
@@ -440,33 +332,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
           </div>
         </section>
 
-        {/* Drop Zone for Drag-to-Filter */}
-        {draggingDomain && (
-          <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDropZoneActive(true);
-            }}
-            onDragLeave={() => setIsDropZoneActive(false)}
-            onDrop={handleDropOnZone}
-            className={`p-6 rounded-card border-2 border-dashed text-center font-mono text-xs transition-all duration-200 ${
-              isDropZoneActive
-                ? "border-signal bg-signal/10 text-signal shadow-glow-green"
-                : "border-accent bg-accent/10 text-accent animate-pulse"
-            }`}
-          >
-            {isDropZoneActive ? (
-              <div className="flex items-center justify-center gap-2 font-bold text-sm">
-                <Check className="w-5 h-5 text-signal" />
-                DROP TO FILTER BY {draggingDomain.toUpperCase()}
-              </div>
-            ) : (
-              <div>RELEASE HERE TO FILTER BY {draggingDomain.toUpperCase()}</div>
-            )}
-          </div>
-        )}
-
-        {/* 4. Table / Cards / Board View Render */}
+        {/* Content Area */}
         {loading ? (
           <div className="p-8 bg-surface/80 rounded-card border border-border space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -484,21 +350,21 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
             <FolderOpen className="w-10 h-10 text-text-faint mx-auto" />
             <h3 className="text-base font-semibold text-white">No teams match your criteria</h3>
             <p className="text-xs text-text-muted max-w-sm mx-auto">
-              Try adjusting your search query, clearing domain filter, or toggling status tabs.
+              Try adjusting your search query or toggling status tabs.
             </p>
             <Button variant="secondary" size="sm" onClick={clearFilters} className="font-mono text-xs mt-2">
               Clear All Filters
             </Button>
           </div>
         ) : viewMode === "table" ? (
-          /* TABLE VIEW */
+          /* TABLE VIEW: Team ID, Team Name, Deliverables, Status, Action */
           <div className="bg-surface/90 backdrop-blur-md rounded-card border border-border overflow-hidden shadow-xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border bg-surface-2/60 text-[11px] font-mono uppercase tracking-wider text-text-muted select-none">
                     <th
-                      className="p-3.5 pl-4 cursor-pointer hover:text-white whitespace-nowrap min-w-[130px]"
+                      className="p-4 pl-5 cursor-pointer hover:text-white whitespace-nowrap min-w-[140px]"
                       onClick={() => handleSort("teamCode")}
                     >
                       <div className="flex items-center gap-1.5 whitespace-nowrap">
@@ -507,71 +373,59 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                       </div>
                     </th>
                     <th
-                      className="p-3.5 cursor-pointer hover:text-white whitespace-nowrap min-w-[200px]"
+                      className="p-4 cursor-pointer hover:text-white whitespace-nowrap min-w-[220px]"
                       onClick={() => handleSort("name")}
                     >
                       <div className="flex items-center gap-1.5 whitespace-nowrap">
                         <span>TEAM NAME</span>
                         <ArrowUpDown className="w-3 h-3 text-text-faint shrink-0" />
+                        <span className="text-[10px] text-text-muted lowercase font-sans font-normal">
+                          (click for details)
+                        </span>
                       </div>
                     </th>
-                    <th className="p-3.5 whitespace-nowrap min-w-[130px]">DOMAIN</th>
-                    <th className="p-3.5 whitespace-nowrap min-w-[120px]">MEMBERS</th>
-                    <th className="p-3.5 min-w-[220px]">CASE STUDY TOPIC</th>
-                    <th className="p-3.5 whitespace-nowrap min-w-[160px]">DELIVERABLES</th>
-                    <th className="p-3.5 whitespace-nowrap min-w-[130px]">STATUS</th>
-                    <th className="p-3.5 pr-4 text-right whitespace-nowrap min-w-[110px]">ACTION</th>
+                    <th className="p-4 whitespace-nowrap min-w-[190px]">DELIVERABLES</th>
+                    <th className="p-4 whitespace-nowrap min-w-[140px]">STATUS</th>
+                    <th className="p-4 pr-5 text-right whitespace-nowrap min-w-[110px]">ACTION</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50 text-xs font-sans">
-                  {filteredTeams.map((team, idx) => {
+                  {filteredTeams.map((team) => {
                     const status = statuses[team.id] || "not_evaluated";
                     const isExpanded = expandedTeamId === team.id;
-                    const leadMember = team.members.find((m) => m.isLead) || team.members[0];
 
                     return (
                       <React.Fragment key={team.id}>
                         <tr
                           onClick={() => setExpandedTeamId(isExpanded ? null : team.id)}
                           className={`hover:bg-surface-2/60 cursor-pointer transition-colors group ${
-                            isExpanded ? "bg-surface-2/80" : ""
+                            isExpanded ? "bg-surface-2/80 border-l-2 border-l-accent" : ""
                           }`}
                         >
-                          {/* Team ID in pink mono chip strictly on single line */}
-                          <td className="p-3.5 pl-4 font-mono font-bold whitespace-nowrap min-w-[130px]">
-                            <span className="inline-flex items-center justify-center whitespace-nowrap px-2.5 py-1 rounded bg-accent/15 border border-accent/35 text-accent shadow-sm font-bold text-xs tracking-wider shrink-0">
+                          {/* 1. TEAM ID */}
+                          <td className="p-4 pl-5 font-mono font-bold whitespace-nowrap">
+                            <span className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot shadow-sm font-bold text-xs tracking-wider shrink-0">
                               {team.teamCode}
                             </span>
                           </td>
 
-                          {/* Team Name */}
-                          <td className="p-3.5 font-semibold text-white whitespace-nowrap">
-                            {team.name}
-                          </td>
-
-                          {/* Domain */}
-                          <td className="p-3.5">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-2 text-text-muted border border-border text-[11px] font-mono">
-                              {team.domain}
-                            </span>
-                          </td>
-
-                          {/* Members stack count */}
-                          <td className="p-3.5 whitespace-nowrap font-mono text-[11px] text-text-muted">
-                            <div className="flex items-center gap-1.5">
-                              <Users className="w-3.5 h-3.5 text-text-faint" />
-                              <span>{team.members.length} members</span>
+                          {/* 2. TEAM NAME */}
+                          <td className="p-4 font-semibold text-white whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <span className="group-hover:text-accent transition-colors font-medium text-sm">
+                                {team.name}
+                              </span>
+                              <ChevronDown
+                                className={`w-4 h-4 text-text-muted group-hover:text-accent transition-transform duration-200 shrink-0 ${
+                                  isExpanded ? "rotate-180 text-accent" : ""
+                                }`}
+                              />
                             </div>
                           </td>
 
-                          {/* Case Study Topic */}
-                          <td className="p-3.5 text-text-muted max-w-xs truncate text-[11px]">
-                            {team.caseStudy}
-                          </td>
-
-                          {/* Deliverable Link Chips */}
-                          <td className="p-3.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-1.5">
+                          {/* 3. DELIVERABLES (Drive, Canva, GitHub links directly visible in roster, not as dropdown list) */}
+                          <td className="p-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
                               {team.canvaUrl ? (
                                 <LinkChip href={team.canvaUrl} label="Deck" variant="canva" />
                               ) : null}
@@ -582,18 +436,18 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                                 <LinkChip href={team.githubUrl} label="Code" variant="github" />
                               ) : null}
                               {!team.canvaUrl && !team.driveUrl && !team.githubUrl && (
-                                <span className="font-mono text-[10px] text-text-faint">No links</span>
+                                <span className="font-mono text-[11px] text-text-muted">No links</span>
                               )}
                             </div>
                           </td>
 
-                          {/* Status Badge */}
-                          <td className="p-3.5 whitespace-nowrap">
+                          {/* 4. STATUS */}
+                          <td className="p-4 whitespace-nowrap">
                             <StatusBadge status={status} />
                           </td>
 
-                          {/* Action Button */}
-                          <td className="p-3.5 pr-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          {/* 5. ACTION */}
+                          <td className="p-4 pr-5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                             <Link
                               href={
                                 isJudgePortal
@@ -604,34 +458,40 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                               <Button
                                 variant={isJudgePortal ? "primary" : "secondary-green"}
                                 size="sm"
-                                className="font-mono text-[11px] tracking-wider py-1 px-3"
+                                className="font-mono text-[11px] tracking-wider py-1.5 px-3.5"
                                 rightIcon={<ChevronRight className="w-3.5 h-3.5" />}
                               >
-                                {isJudgePortal ? "Evaluate ->" : "View ->"}
+                                {isJudgePortal ? "Evaluate" : "View"}
                               </Button>
                             </Link>
                           </td>
                         </tr>
 
-                        {/* Inline Expandable Dossier Peek Panel */}
+                        {/* Inline Expandable Dossier Peek Panel: VISIBLE WHEN TEAM NAME IS SELECTED */}
                         {isExpanded && (
-                          <tr className="bg-surface-3/90">
-                            <td colSpan={8} className="p-6 border-l-4 border-l-accent border-b border-border">
-                              <div className="space-y-4">
+                          <tr className="bg-surface-3/95 transition-all">
+                            <td colSpan={5} className="p-6 border-l-4 border-l-accent border-b border-border shadow-inner">
+                              <div className="space-y-5">
+                                {/* Header with Team Info and Quick Navigate */}
                                 <div className="flex items-start justify-between gap-4">
-                                  <div>
+                                  <div className="space-y-1.5 max-w-3xl">
                                     <div className="flex items-center gap-2">
-                                      <span className="inline-flex items-center justify-center whitespace-nowrap px-2.5 py-1 rounded bg-accent/20 border border-accent/40 text-accent font-mono text-xs font-bold shrink-0">
+                                      <span className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot font-mono text-xs font-bold shrink-0 shadow-sm">
                                         {team.teamCode}
                                       </span>
                                       <h3 className="text-lg font-bold text-white">{team.name}</h3>
-                                      <span className="font-mono text-xs text-signal px-2 py-0.5 rounded bg-signal/15 border border-signal/30">
-                                        {team.domain}
-                                      </span>
                                     </div>
-                                    <p className="text-xs text-text-muted mt-1.5 leading-relaxed max-w-3xl">
-                                      {team.caseStudy}
-                                    </p>
+                                    
+                                    {/* Case Study Details */}
+                                    <div className="pt-2">
+                                      <div className="font-mono text-[11px] text-accent-hot uppercase tracking-wider font-bold mb-1 flex items-center gap-1.5">
+                                        <FileText className="w-3.5 h-3.5 text-accent-hot" />
+                                        <span>CASE STUDY TOPIC &amp; BRIEF</span>
+                                      </div>
+                                      <p className="text-xs text-text-muted leading-relaxed whitespace-pre-line pl-5 border-l-2 border-accent/30 mt-1">
+                                        {team.caseStudy}
+                                      </p>
+                                    </div>
                                   </div>
 
                                   <Link
@@ -640,6 +500,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                                         ? `/judge/teams/${team.id}`
                                         : `/mentor/teams/${team.id}`
                                     }
+                                    onClick={(e) => e.stopPropagation()}
                                   >
                                     <Button
                                       variant={isJudgePortal ? "primary" : "secondary-green"}
@@ -647,21 +508,42 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                                       className="font-mono text-xs tracking-wider shrink-0"
                                       rightIcon={<ExternalLink className="w-3.5 h-3.5" />}
                                     >
-                                      Open Full Dossier &rarr;
+                                      Open Full Dossier
                                     </Button>
                                   </Link>
                                 </div>
 
-                                {/* Members roster tags */}
-                                <div className="space-y-1.5 pt-2">
-                                  <span className="font-mono text-[11px] text-text-faint uppercase tracking-wider">
-                                    ROSTER MEMBERS:
+                                {/* Submitted Deliverables */}
+                                <div className="pt-3 border-t border-border/40">
+                                  <span className="font-mono text-[11px] text-signal uppercase tracking-wider font-semibold block mb-2">
+                                    SUBMITTED DELIVERABLES
+                                  </span>
+                                  <div className="flex items-center gap-2.5 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                                    {team.canvaUrl ? (
+                                      <LinkChip href={team.canvaUrl} label="Canva Slide Deck" variant="canva" />
+                                    ) : null}
+                                    {team.driveUrl ? (
+                                      <LinkChip href={team.driveUrl} label="Google Drive Folder" variant="drive" />
+                                    ) : null}
+                                    {team.githubUrl ? (
+                                      <LinkChip href={team.githubUrl} label="GitHub Code Repository" variant="github" />
+                                    ) : null}
+                                    {!team.canvaUrl && !team.driveUrl && !team.githubUrl && (
+                                      <span className="font-mono text-[11px] text-text-faint">No external links submitted</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Team Members Roster */}
+                                <div className="pt-3 border-t border-border/40">
+                                  <span className="font-mono text-[11px] text-text-faint uppercase tracking-wider font-semibold block mb-2">
+                                    TEAM MEMBERS ({team.members.length})
                                   </span>
                                   <div className="flex flex-wrap gap-2">
                                     {team.members.map((m, mIdx) => (
                                       <div
                                         key={mIdx}
-                                        className="flex items-center gap-2 px-3 py-1 rounded bg-surface-2 border border-border text-xs"
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded bg-surface-2 border border-border text-xs"
                                       >
                                         <span className="text-white font-medium">{m.name}</span>
                                         <span className="text-text-muted text-[10px] font-mono">
@@ -700,7 +582,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center justify-center whitespace-nowrap px-2.5 py-1 rounded bg-accent/15 border border-accent/30 text-accent font-mono text-xs font-bold shrink-0">
+                      <span className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot font-mono text-xs font-bold shrink-0 shadow-sm">
                         {team.teamCode}
                       </span>
                       <StatusBadge status={status} />
@@ -710,14 +592,16 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                       <h3 className="text-base font-bold text-white group-hover:text-accent transition-colors">
                         {team.name}
                       </h3>
-                      <span className="inline-block mt-1 font-mono text-[11px] text-signal">
-                        {team.domain}
-                      </span>
                     </div>
 
-                    <p className="text-xs text-text-muted line-clamp-2 leading-relaxed">
-                      {team.caseStudy}
-                    </p>
+                    <div className="space-y-1">
+                      <span className="font-mono text-[10px] text-accent-hot uppercase tracking-wider font-bold">
+                        CASE STUDY:
+                      </span>
+                      <p className="text-xs text-text-muted line-clamp-3 leading-relaxed">
+                        {team.caseStudy}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="pt-3 border-t border-border/50 flex items-center justify-between gap-2">
@@ -739,7 +623,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                         size="sm"
                         className="font-mono text-[11px]"
                       >
-                        {isJudgePortal ? "Evaluate ->" : "View ->"}
+                        {isJudgePortal ? "Evaluate" : "View"}
                       </Button>
                     </Link>
                   </div>
@@ -748,7 +632,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
             })}
           </div>
         ) : (
-          /* BOARD VIEW (3 Lanes: Not Evaluated / Draft / Submitted) */
+          /* BOARD VIEW */
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { statusKey: "not_evaluated", label: "Not Evaluated", border: "border-border" },
@@ -785,19 +669,20 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                           className="p-4 bg-surface-2/90 rounded border border-border hover:border-accent transition-all space-y-3"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="inline-flex items-center justify-center whitespace-nowrap px-2.5 py-1 rounded bg-accent/15 text-accent font-mono text-[11px] font-bold shrink-0">
+                            <span className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot font-mono text-[11px] font-bold shrink-0 shadow-sm">
                               {team.teamCode}
                             </span>
-                            <span className="font-mono text-[10px] text-signal">{team.domain}</span>
-                          </div>
-
-                          <h4 className="text-sm font-bold text-white">{team.name}</h4>
-                          <p className="text-xs text-text-muted line-clamp-2">{team.caseStudy}</p>
-
-                          <div className="pt-2 flex items-center justify-between border-t border-border/40">
                             <span className="text-[10px] font-mono text-text-faint">
                               {team.members.length} members
                             </span>
+                          </div>
+
+                          <h4 className="text-sm font-bold text-white">{team.name}</h4>
+                          <p className="text-xs text-text-muted line-clamp-2 leading-relaxed">
+                            {team.caseStudy}
+                          </p>
+
+                          <div className="pt-2 flex items-center justify-end border-t border-border/40">
                             <Link
                               href={
                                 isJudgePortal
@@ -810,7 +695,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                                 size="sm"
                                 className="font-mono text-[10px] py-1 px-2.5"
                               >
-                                {isJudgePortal ? "Evaluate ->" : "View ->"}
+                                {isJudgePortal ? "Evaluate" : "View"}
                               </Button>
                             </Link>
                           </div>

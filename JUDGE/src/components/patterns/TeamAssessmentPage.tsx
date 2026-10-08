@@ -12,6 +12,7 @@ import { LinkChip } from "@/components/patterns/LinkChip";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { NavigationBar } from "@/components/layout/NavigationBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import {
@@ -20,6 +21,7 @@ import {
   Lock,
   Save,
   Send,
+  Edit3,
   AlertTriangle,
   ExternalLink,
   Users,
@@ -52,6 +54,8 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isEditingDraft, setIsEditingDraft] = useState(false);
+  const [feedbackError, setFeedbackError] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Auth guard
@@ -121,10 +125,25 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
     if (!isJudgePortal || evaluation?.status === "submitted") return;
     setFeedback(val);
     setHasUnsavedChanges(true);
+    if (feedbackError && val.trim()) {
+      setFeedbackError(false);
+    }
   };
 
   const handleSave = async (status: EvaluationStatus) => {
     if (!user || !isJudgePortal || evaluation?.status === "submitted") return;
+
+    // Compulsory check: feedback must be entered before submitting
+    if (status === "submitted") {
+      if (!feedback || !feedback.trim()) {
+        setFeedbackError(true);
+        setToastMessage({
+          type: "error",
+          text: "Qualitative jury feedback is compulsory before submitting evaluation.",
+        });
+        return;
+      }
+    }
 
     setSaving(true);
     setToastMessage(null);
@@ -147,6 +166,8 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
     if (res.success && res.evaluation) {
       setEvaluation(res.evaluation);
       setHasUnsavedChanges(false);
+      setIsEditingDraft(false);
+      setFeedbackError(false);
       setToastMessage({
         type: "success",
         text: status === "submitted" ? "Evaluation finalized & submitted!" : "Draft score saved successfully.",
@@ -160,7 +181,8 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
     }
   };
 
-  const isLocked = !isJudgePortal || evaluation?.status === "submitted";
+  const isDraftSaved = evaluation?.status === "draft";
+  const isLocked = !isJudgePortal || evaluation?.status === "submitted" || (isDraftSaved && !isEditingDraft);
 
   if (loading) {
     return (
@@ -217,39 +239,37 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
 
         {/* Header & Breadcrumb */}
         <div className="space-y-3 border-b border-border/50 pb-5">
-          <Breadcrumbs
-            items={[
-              { label: "HOME", href: "/" },
-              {
-                label: "FINAL ROUND",
-                href: isJudgePortal ? "/judge/dashboard" : "/mentor/dashboard",
-              },
-              {
-                label: "TEAMS",
-                href: isJudgePortal ? "/judge/teams" : "/mentor/teams",
-              },
-              { label: team.teamCode },
-            ]}
-          />
+          <div className="flex items-center gap-3">
+            <NavigationBar
+              homeHref={isJudgePortal ? "/judge/dashboard" : "/mentor/dashboard"}
+              backHref={isJudgePortal ? "/judge/teams" : "/mentor/teams"}
+            />
+            <div className="h-4 w-[1px] bg-border-strong hidden sm:block" />
+            <Breadcrumbs
+              items={[
+                { label: "HOME", href: "/" },
+                {
+                  label: "FINAL ROUND",
+                  href: isJudgePortal ? "/judge/dashboard" : "/mentor/dashboard",
+                },
+                {
+                  label: "TEAMS",
+                  href: isJudgePortal ? "/judge/teams" : "/mentor/teams",
+                },
+                { label: team.teamCode },
+              ]}
+            />
+          </div>
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
             <div className="space-y-1">
               <div className="flex items-center gap-3">
-                <Link
-                  href={isJudgePortal ? "/judge/teams" : "/mentor/teams"}
-                  className="p-1.5 rounded hover:bg-surface-2 text-text-muted hover:text-white transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </Link>
-                <span className="px-2.5 py-0.5 rounded bg-accent/15 border border-accent/40 text-accent font-mono text-sm font-bold">
+                <span className="px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot font-mono text-sm font-bold shadow-sm">
                   {team.teamCode}
                 </span>
                 <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                   {team.name}
                 </h1>
-                <span className="font-mono text-xs text-signal px-2.5 py-0.5 rounded bg-signal/15 border border-signal/30">
-                  {team.domain}
-                </span>
               </div>
             </div>
 
@@ -258,7 +278,15 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
               {isLocked && (
                 <div className="flex items-center gap-1 text-xs font-mono text-text-muted px-2.5 py-1 rounded bg-surface-2 border border-border">
                   <Lock className="w-3.5 h-3.5 text-text-faint" />
-                  <span>{isJudgePortal ? "SUBMITTED (LOCKED)" : "VIEW-ONLY"}</span>
+                  <span>
+                    {evaluation?.status === "submitted"
+                      ? isJudgePortal
+                        ? "SUBMITTED (LOCKED)"
+                        : "VIEW-ONLY"
+                      : isDraftSaved && !isEditingDraft
+                      ? "DRAFT SAVED (CLICK EDIT TO MODIFY)"
+                      : "VIEW-ONLY"}
+                  </span>
                 </div>
               )}
             </div>
@@ -305,21 +333,65 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
         {/* Tab 1: Scoring Matrix */}
         {activeTab === "evaluation" && (
           <div className="space-y-6">
+            {/* Project Deliverables Quick Bar: Visible right along with the marks */}
+            <div className="p-4 sm:p-5 bg-surface/90 rounded-card border-2 border-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-signal shadow-[0_0_8px_var(--signal)]" />
+                  <span className="font-mono text-xs uppercase tracking-wider text-white font-bold">
+                    PROJECT DELIVERABLES &amp; DOSSIER LINKS
+                  </span>
+                </div>
+                <p className="text-xs text-text-muted">
+                  Inspect pitch decks, code repository, and drive assets while awarding marks below.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {team.canvaUrl ? (
+                  <LinkChip href={team.canvaUrl} label="Canva Slide Deck" variant="canva" />
+                ) : null}
+                {team.driveUrl ? (
+                  <LinkChip href={team.driveUrl} label="Google Drive Folder" variant="drive" />
+                ) : null}
+                {team.githubUrl ? (
+                  <LinkChip href={team.githubUrl} label="GitHub Code" variant="github" />
+                ) : null}
+                {!team.canvaUrl && !team.driveUrl && !team.githubUrl && (
+                  <span className="font-mono text-xs text-text-muted">No external links submitted</span>
+                )}
+              </div>
+            </div>
+
             {/* Score Table with Typing-Only Input + Chevrons */}
             <ScoreTable
               criteria={criteria}
               marks={marks}
               onChange={handleScoreChange}
-              isLocked={evaluation?.status === "submitted"}
+              isLocked={isLocked}
               isReadOnly={!isJudgePortal}
             />
 
             {/* Qualitative Feedback Textarea */}
-            <div className="p-6 bg-surface/90 rounded-card border border-border space-y-3">
-              <label className="font-mono text-xs uppercase tracking-wider text-text-muted font-semibold flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-[1px] bg-signal" />
-                QUALITATIVE JURY FEEDBACK &amp; DEFENSE NOTES
-              </label>
+            <div
+              className={`p-6 bg-surface/90 rounded-card border-2 border-white transition-all space-y-3 shadow-xl ${
+                feedbackError ? "border-danger shadow-glow-pink" : ""
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <label className="font-mono text-xs uppercase tracking-wider text-white font-bold flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-[1px] bg-signal" />
+                  QUALITATIVE JURY FEEDBACK &amp; DEFENSE NOTES
+                  <span className="text-accent text-[10px] font-mono font-bold tracking-normal">
+                    (COMPULSORY TO SUBMIT)
+                  </span>
+                </label>
+                {feedbackError && (
+                  <span className="font-mono text-xs text-danger font-semibold">
+                    * Feedback is required before submitting evaluation
+                  </span>
+                )}
+              </div>
               <textarea
                 rows={4}
                 value={feedback}
@@ -327,11 +399,20 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
                 onChange={(e) => handleFeedbackChange(e.target.value)}
                 placeholder={
                   isJudgePortal
-                    ? "Enter structured feedback, architectural strengths, and key Q&A defense observations..."
+                    ? "Enter structured feedback, architectural strengths, and key Q&A defense observations (compulsory before submission)..."
                     : "No jury feedback entered yet."
                 }
-                className="w-full p-4 bg-surface-2 border border-border rounded font-sans text-sm text-white placeholder:text-text-faint focus:outline-none focus:border-accent focus:shadow-glow-pink disabled:opacity-60 transition-all"
+                className={`w-full p-4 bg-surface-2 border-2 border-white rounded font-sans text-sm text-white placeholder:text-text-muted focus:outline-none focus:shadow-glow-pink disabled:opacity-60 transition-all ${
+                  feedbackError
+                    ? "border-danger focus:border-danger"
+                    : "border-white focus:border-accent"
+                }`}
               />
+              {!feedback.trim() && isDraftSaved && !isEditingDraft && (
+                <p className="text-xs font-mono text-amber-400">
+                  ⚠️ Note: Click &quot;Edit&quot; and enter qualitative feedback to enable final submission.
+                </p>
+              )}
             </div>
 
             {/* Action Bar (Judge Only) */}
@@ -344,30 +425,64 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
                       Unsaved changes
                     </span>
                   )}
+                  {isDraftSaved && !isEditingDraft && !hasUnsavedChanges && (
+                    <span className="text-signal flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-signal" />
+                      Draft saved — review scores or click Edit / Submit
+                    </span>
+                  )}
+                  {isEditingDraft && (
+                    <span className="text-accent flex items-center gap-1.5">
+                      <Edit3 className="w-3.5 h-3.5 text-accent" />
+                      Edit mode active
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    disabled={saving}
-                    onClick={() => handleSave("draft")}
-                    leftIcon={<Save className="w-4 h-4 text-accent" />}
-                    className="font-mono text-xs w-full sm:w-auto"
-                  >
-                    Save as Draft
-                  </Button>
+                  {(!isDraftSaved || isEditingDraft) ? (
+                    /* Step 1: When entering scores/feedback, ONLY option visible is Save as Draft */
+                    <Button
+                      variant="primary"
+                      size="md"
+                      disabled={saving}
+                      onClick={() => handleSave("draft")}
+                      leftIcon={<Save className="w-4 h-4 text-accent" />}
+                      className="font-mono text-xs w-full sm:w-auto shadow-glow-pink"
+                    >
+                      {saving ? "Saving Draft..." : "Save as Draft"}
+                    </Button>
+                  ) : (
+                    /* Step 2: Once saved as draft, options visible are Edit and Submit */
+                    <>
+                      <Button
+                        variant="secondary"
+                        size="md"
+                        disabled={saving}
+                        onClick={() => setIsEditingDraft(true)}
+                        leftIcon={<Edit3 className="w-4 h-4 text-accent" />}
+                        className="font-mono text-xs w-full sm:w-auto hover:border-accent"
+                      >
+                        Edit
+                      </Button>
 
-                  <Button
-                    variant="primary"
-                    size="md"
-                    disabled={saving}
-                    onClick={() => handleSave("submitted")}
-                    rightIcon={<Send className="w-4 h-4" />}
-                    className="font-mono text-xs shadow-glow-dual w-full sm:w-auto"
-                  >
-                    Submit Final Assessment &rarr;
-                  </Button>
+                      <Button
+                        variant="primary"
+                        size="md"
+                        disabled={saving || !feedback.trim()}
+                        onClick={() => handleSave("submitted")}
+                        rightIcon={<Send className="w-4 h-4" />}
+                        className="font-mono text-xs shadow-glow-dual w-full sm:w-auto disabled:opacity-40"
+                        title={
+                          !feedback.trim()
+                            ? "Feedback is compulsory before submitting evaluation"
+                            : "Submit final assessment"
+                        }
+                      >
+                        {saving ? "Submitting..." : "Submit"}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -379,7 +494,7 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
           <div className="space-y-6">
             {/* Case Study Card */}
             <div className="p-6 bg-surface/90 rounded-card border border-border space-y-3">
-              <h3 className="font-mono text-xs uppercase tracking-wider text-accent font-semibold flex items-center gap-2">
+              <h3 className="font-mono text-xs uppercase tracking-wider text-accent-hot font-bold flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 CASE STUDY PROBLEM STATEMENT &amp; ARCHITECTURE
               </h3>

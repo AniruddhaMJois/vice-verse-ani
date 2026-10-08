@@ -126,7 +126,7 @@ export function RecentActivityList({
                     </span>
 
                     {/* Team ID Chip strictly on a single horizontal row */}
-                    <span className="inline-flex items-center justify-center whitespace-nowrap shrink-0 px-2.5 py-1 rounded bg-accent/15 border border-accent/35 text-accent font-bold text-xs tracking-wider shadow-sm">
+                    <span className="inline-flex items-center justify-center whitespace-nowrap shrink-0 px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot font-bold text-xs tracking-wider shadow-sm">
                       {act.teamCode}
                     </span>
 

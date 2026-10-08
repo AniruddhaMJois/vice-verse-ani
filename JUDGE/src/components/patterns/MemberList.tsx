@@ -34,14 +34,14 @@ export function MemberList({ members, className }: MemberListProps) {
             }}
           >
             <div className="w-8 h-8 rounded-full bg-surface-3 flex items-center justify-center font-mono text-xs font-bold text-white">
-              {member.member_name.charAt(0).toUpperCase()}
+              {member.name.charAt(0).toUpperCase()}
             </div>
           </div>
 
           {/* Member Details */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 truncate">
-              <span className="text-xs font-medium text-white truncate">{member.member_name}</span>
+              <span className="text-xs font-medium text-white truncate">{member.name}</span>
               {member.is_lead && (
                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-[3px] bg-accent/15 text-accent border border-accent/30 font-mono text-[9px] font-bold uppercase tracking-wider shrink-0">
                   <Star className="w-2.5 h-2.5 fill-accent text-accent" />

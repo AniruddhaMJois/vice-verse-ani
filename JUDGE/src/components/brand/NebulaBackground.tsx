@@ -143,9 +143,9 @@ export function NebulaBackground({ className = "", forceVariant }: NebulaBackgro
         />
       )}
 
-      {/* 3. Data Scrim: Extra flat 25% scrim over data-heavy views for WCAG readability */}
+      {/* 3. Data Scrim: Darker scrim over data-heavy views to prevent text camouflage */}
       {isDataVariant && (
-        <div className="absolute inset-0 bg-[#03050A]/25 pointer-events-none" />
+        <div className="absolute inset-0 bg-[#03050A]/65 backdrop-blur-[2px] pointer-events-none" />
       )}
     </div>
   );

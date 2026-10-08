@@ -6,6 +6,8 @@ import { MatrixRain } from "@/components/brand/MatrixRain";
 import { GradientStrip } from "@/components/brand/GradientStrip";
 import { ScriptText } from "@/components/brand/ScriptText";
 import { Button } from "@/components/ui/Button";
+import { NavigationBar } from "@/components/layout/NavigationBar";
+import { Logo } from "@/components/brand/Logo";
 import { Marquee } from "@/components/patterns/Marquee";
 import { StatCard } from "@/components/patterns/StatCard";
 import {
@@ -146,9 +148,29 @@ export default function LandingPage() {
       />
 
       {/* 6. Main Content */}
-      <div className="relative z-10 max-w-[1240px] mx-auto px-4 sm:px-6 py-12 sm:py-20 flex-1 flex flex-col justify-between">
+      <div className="relative z-10 max-w-[1240px] mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1 flex flex-col justify-between">
+        {/* Top Header Bar with Logo and Navigation */}
+        <header className="flex items-center justify-between gap-4 pb-6 border-b border-border/50">
+          <Logo size="md" showSubtitle={true} isLink={false} />
+          <div className="flex items-center gap-3">
+            <NavigationBar homeHref="/" backHref="/" homeLabel="Home" backLabel="Back" />
+            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-border/50">
+              <Link href="/judge/login">
+                <Button variant="ghost" size="sm" className="font-mono text-xs">
+                  Judge Portal
+                </Button>
+              </Link>
+              <Link href="/mentor/login">
+                <Button variant="secondary-green" size="sm" className="font-mono text-xs">
+                  Mentor Portal
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </header>
+
         {/* Hero Section */}
-        <section className="text-center space-y-6 sm:space-y-8 max-w-3xl mx-auto pt-8 sm:pt-16">
+        <section className="text-center space-y-6 sm:space-y-8 max-w-3xl mx-auto pt-6 sm:pt-12">
           {/* Section Kicker */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-surface-2/80 backdrop-blur-md border border-border text-xs font-mono text-text-muted select-none shadow-sm">
             <span className="w-2 h-2 rounded-full bg-signal animate-pulse shadow-[0_0_6px_var(--signal)]" />
@@ -222,11 +244,11 @@ export default function LandingPage() {
               <Button
                 variant="primary"
                 size="lg"
-                className="w-full text-sm shadow-glow-pink font-mono tracking-wider justify-center"
+                className="w-full text-sm shadow-glow-pink font-mono tracking-wider justify-center whitespace-nowrap"
                 rightIcon={<ArrowRight className="w-4 h-4" />}
                 leftIcon={<ShieldCheck className="w-4 h-4 text-accent" />}
               >
-                Judge Portal &rarr;
+                Judge Portal
               </Button>
             </Link>
 
@@ -234,10 +256,11 @@ export default function LandingPage() {
               <Button
                 variant="secondary-green"
                 size="lg"
-                className="w-full text-sm hover:shadow-glow-green font-mono tracking-wider justify-center"
+                className="w-full text-sm hover:shadow-glow-green font-mono tracking-wider justify-center whitespace-nowrap"
+                rightIcon={<ArrowRight className="w-4 h-4" />}
                 leftIcon={<Eye className="w-4 h-4 text-signal" />}
               >
-                Mentor Portal &rarr;
+                Mentor Portal
               </Button>
             </Link>
           </div>

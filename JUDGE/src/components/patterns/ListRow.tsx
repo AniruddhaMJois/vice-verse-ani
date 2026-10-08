@@ -47,8 +47,8 @@ export function ListRow({
       >
         {/* Top Header */}
         <div className="flex items-start justify-between gap-2">
-          <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-[4px] bg-accent/15 text-accent border border-accent/30">
-            {team.team_id}
+          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-[4px] bg-surface-2 text-accent-hot border-2 border-accent">
+            {team.team_code}
           </span>
           <StatusBadge status={status} />
         </div>
@@ -56,9 +56,9 @@ export function ListRow({
         {/* Content */}
         <div className="space-y-1">
           <h4 className="text-sm font-semibold text-white group-hover:text-accent transition-colors truncate">
-            {team.team_name}
+            {team.name}
           </h4>
-          <p className="text-xs text-text-muted truncate">{team.domain}</p>
+          <p className="text-xs text-text-muted truncate">{team.case_study}</p>
         </div>
 
         {/* Footer Meta */}
@@ -93,13 +93,13 @@ export function ListRow({
         )}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className="font-mono text-xs font-semibold text-accent shrink-0">
-            {team.team_id}
+          <span className="font-mono text-xs font-bold text-accent-hot shrink-0">
+            {team.team_code}
           </span>
           <span className="text-xs font-medium text-white group-hover:text-accent transition-colors truncate">
-            {team.team_name}
+            {team.name}
           </span>
-          <span className="text-[11px] text-text-muted hidden sm:inline truncate">&bull; {team.domain}</span>
+          <span className="text-[11px] text-text-muted hidden sm:inline truncate">&bull; {team.case_study}</span>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -140,18 +140,18 @@ export function ListRow({
         }}
       />
 
-      {/* Left: Team ID Chip (Pink) + Name & Domain */}
+      {/* Left: Team ID Chip (Pink) + Name & Case Study */}
       <div className="flex items-center gap-3.5 min-w-0">
-        <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-[4px] bg-accent/15 text-accent border border-accent/30 shrink-0 shadow-sm">
-          {team.team_id}
+        <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-[4px] bg-surface-2 text-accent-hot border-2 border-accent shrink-0 shadow-sm">
+          {team.team_code}
         </span>
 
         <div className="min-w-0">
           <div className="text-sm font-medium text-white group-hover:text-accent-hot transition-colors truncate">
-            {team.team_name}
+            {team.name}
           </div>
           <div className="text-xs text-text-muted truncate mt-0.5 flex items-center gap-2">
-            <span>{team.domain}</span>
+            <span>{team.case_study}</span>
             {team.members && team.members.length > 0 && (
               <>
                 <span className="text-border-strong">&bull;</span>

@@ -79,14 +79,14 @@ export function ScoreTable({
   };
 
   return (
-    <div className={cn("w-full bg-surface border border-border rounded-card overflow-hidden select-none", className)}>
+    <div className={cn("w-full bg-surface border-2 border-white rounded-card overflow-hidden select-none shadow-xl", className)}>
       {/* Desktop & Tablet Table View */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="h-11 bg-surface-2/80 border-b border-border text-[11px] font-mono font-medium text-text-muted uppercase tracking-wider">
+            <tr className="h-11 bg-surface-2/80 border-b border-white/20 text-[11px] font-mono font-medium text-text-muted uppercase tracking-wider">
               <th className="px-5 w-14 text-center">
-                <span className="text-signal-dim font-bold mr-1">//</span>#
+                <span className="text-signal font-bold mr-1">//</span>#
               </th>
               <th className="px-5">Criteria &amp; Rubric Description</th>
               <th className="px-5 w-32 text-center">Max Marks</th>
@@ -128,17 +128,17 @@ export function ScoreTable({
                   </td>
 
                   {/* Max Marks */}
-                  <td className="px-5 text-center font-mono text-sm text-text-muted tabular-nums">
+                  <td className="px-5 text-center font-mono text-sm text-white font-semibold tabular-nums">
                     {crit.maxMarks}
                   </td>
 
                   {/* Marks Input (Typing Only + External Chevrons) */}
                   <td className="px-5 text-right">
                     {isDisabled ? (
-                      <div className="inline-flex items-center justify-end gap-2 font-mono text-base font-bold text-white tabular-nums">
+                      <div className="inline-flex items-center justify-end gap-2 font-mono text-base font-bold text-white tabular-nums px-3.5 py-1.5 bg-surface-2 border-2 border-white rounded shadow-sm">
                         <span className="text-signal">{currentScore}</span>
-                        <span className="text-text-faint text-xs">/ {crit.maxMarks}</span>
-                        {isLocked && <Lock className="w-3.5 h-3.5 text-text-faint ml-1" />}
+                        <span className="text-text-muted text-xs">/ {crit.maxMarks}</span>
+                        {isLocked && <Lock className="w-3.5 h-3.5 text-text-muted ml-1" />}
                       </div>
                     ) : (
                       <div className="inline-flex items-center justify-end gap-1.5">
@@ -152,12 +152,12 @@ export function ScoreTable({
                           onMouseLeave={stopHoldStep}
                           onTouchStart={() => startHoldStep(crit.id, crit.maxMarks, -1)}
                           onTouchEnd={stopHoldStep}
-                          className="w-9 h-9 rounded-[4px] bg-surface-2 hover:bg-surface-3 border border-border text-text-muted hover:text-accent hover:border-accent disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors shrink-0"
+                          className="w-9 h-9 rounded-[4px] bg-surface-2 hover:bg-surface-3 border-2 border-white/70 hover:border-white text-white hover:text-accent disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors shrink-0"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
 
-                        {/* Typing Only Input Box: 96px wide, no spinners */}
+                        {/* Typing Only Input Box: bold white border */}
                         <div className="relative">
                           <input
                             type="text"
@@ -173,11 +173,11 @@ export function ScoreTable({
                               }
                             }}
                             className={cn(
-                              "w-24 h-9 px-3 text-right font-mono text-sm font-bold bg-surface-2 border rounded transition-all tabular-nums text-white",
+                              "w-24 h-9 px-3 text-right font-mono text-sm font-bold bg-surface-2 border-2 rounded transition-all tabular-nums text-white shadow-sm",
                               "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                               "focus:outline-none focus:border-accent focus:shadow-glow-pink",
-                              isOver ? "border-danger text-danger bg-danger/10" : "border-border",
-                              hasScore && currentScore > 0 && !isOver && "border-signal/80 text-signal"
+                              isOver ? "border-danger text-danger bg-danger/10" : "border-white",
+                              hasScore && currentScore > 0 && !isOver && "border-white text-signal font-extrabold"
                             )}
                           />
                           {isOver && (
@@ -197,7 +197,7 @@ export function ScoreTable({
                           onMouseLeave={stopHoldStep}
                           onTouchStart={() => startHoldStep(crit.id, crit.maxMarks, 1)}
                           onTouchEnd={stopHoldStep}
-                          className="w-9 h-9 rounded-[4px] bg-surface-2 hover:bg-surface-3 border border-border text-text-muted hover:text-accent hover:border-accent disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors shrink-0"
+                          className="w-9 h-9 rounded-[4px] bg-surface-2 hover:bg-surface-3 border-2 border-white/70 hover:border-white text-white hover:text-accent disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors shrink-0"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -250,7 +250,7 @@ export function ScoreTable({
                       aria-label={`Decrease marks for ${crit.name}`}
                       disabled={isMin}
                       onClick={() => handleStep(crit.id, crit.maxMarks, -1)}
-                      className="w-11 h-11 rounded bg-surface-2 border border-border text-white flex items-center justify-center font-mono text-lg hover:text-accent disabled:opacity-30"
+                      className="w-11 h-11 rounded bg-surface-2 border-2 border-white text-white flex items-center justify-center font-mono text-lg hover:text-accent disabled:opacity-30"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
@@ -262,9 +262,9 @@ export function ScoreTable({
                       onChange={(e) => handleInputChange(crit.id, crit.maxMarks, e.target.value)}
                       onBlur={() => handleBlur(crit.id, crit.maxMarks)}
                       className={cn(
-                        "w-20 h-11 text-center font-mono text-base font-bold bg-surface-2 border rounded text-white focus:border-accent",
+                        "w-20 h-11 text-center font-mono text-base font-bold bg-surface-2 border-2 rounded text-white focus:border-accent",
                         "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
-                        isOver ? "border-danger text-danger" : "border-border"
+                        isOver ? "border-danger text-danger" : "border-white"
                       )}
                     />
 
@@ -273,7 +273,7 @@ export function ScoreTable({
                       aria-label={`Increase marks for ${crit.name}`}
                       disabled={isMax}
                       onClick={() => handleStep(crit.id, crit.maxMarks, 1)}
-                      className="w-11 h-11 rounded bg-surface-2 border border-border text-white flex items-center justify-center font-mono text-lg hover:text-accent disabled:opacity-30"
+                      className="w-11 h-11 rounded bg-surface-2 border-2 border-white text-white flex items-center justify-center font-mono text-lg hover:text-accent disabled:opacity-30"
                     >
                       <Plus className="w-4 h-4" />
                     </button>

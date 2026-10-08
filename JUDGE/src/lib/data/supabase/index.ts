@@ -143,12 +143,18 @@ export class SupabaseTeamRepository implements TeamRepository {
     if (!client) return null;
 
     try {
-      // Allow fetching by primary UUID or teamCode
-      const { data, error } = await client
+      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(teamId);
+      let query = client
         .from("teams")
-        .select("*, members:team_members(*)")
-        .or(`id.eq.${teamId},team_code.eq.${teamId},team_id.eq.${teamId}`)
-        .maybeSingle();
+        .select("*, members:team_members(*)");
+
+      if (isUuid) {
+        query = query.or(`id.eq.${teamId},team_code.eq.${teamId}`);
+      } else {
+        query = query.eq("team_code", teamId);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (error || !data) return null;
       return this.mapTeamRow(data);

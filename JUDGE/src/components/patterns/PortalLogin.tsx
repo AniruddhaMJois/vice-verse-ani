@@ -8,6 +8,7 @@ import { UserRole } from "@/lib/data/types";
 import { WireframeGlobe } from "@/components/brand/WireframeGlobe";
 import { BootLoader } from "@/components/brand/BootLoader";
 import { Button } from "@/components/ui/Button";
+import { NavigationBar } from "@/components/layout/NavigationBar";
 import { ShieldCheck, Eye, AlertCircle, ArrowRight, Lock } from "lucide-react";
 
 interface PortalLoginProps {
@@ -99,16 +100,17 @@ export function PortalLogin({ role }: PortalLoginProps) {
     if (!isFormValid || isSubmitting || cooldown > 0) return;
 
     setIsSubmitting(true);
+    setIsBooting(true);
     setError(null);
 
     const res = await login(cleanId, pin, role);
 
     if (res.success) {
-      setIsBooting(true);
       setTimeout(() => {
         router.push(isJudge ? "/judge/dashboard" : "/mentor/dashboard");
-      }, 1400);
+      }, 1000);
     } else {
+      setIsBooting(false);
       setIsSubmitting(false);
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
@@ -128,6 +130,7 @@ export function PortalLogin({ role }: PortalLoginProps) {
       {isBooting && (
         <BootLoader
           portalName={isJudge ? "JUDGE PORTAL" : "MENTOR PORTAL"}
+          forceShow={true}
           onComplete={() => {}}
         />
       )}
@@ -165,6 +168,23 @@ export function PortalLogin({ role }: PortalLoginProps) {
                 : "2px solid #00FF41",
             }}
           >
+            {/* Top Navigation Bar: Back & Home */}
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-border/50">
+              <NavigationBar homeHref="/" backHref="/" />
+              <div className="flex items-center gap-2">
+                <span
+                  className={`w-2 h-2 rounded-full animate-pulse ${
+                    isJudge
+                      ? "bg-accent shadow-[0_0_8px_var(--accent)]"
+                      : "bg-signal shadow-[0_0_8px_var(--signal)]"
+                  }`}
+                />
+                <span className="font-mono text-[11px] text-text-muted uppercase tracking-widest font-semibold">
+                  VICEVERSE &apos;26
+                </span>
+              </div>
+            </div>
+
             {/* Header: Role chip & title */}
             <div className="flex items-center justify-between gap-2 mb-6">
               <div className="flex items-center gap-2">
@@ -300,8 +320,8 @@ export function PortalLogin({ role }: PortalLoginProps) {
                   {isSubmitting
                     ? "AUTHENTICATING..."
                     : isJudge
-                    ? "Enter Judge Portal ->"
-                    : "Enter Mentor Portal ->"}
+                    ? "Enter Judge Portal"
+                    : "Enter Mentor Portal"}
                 </Button>
               </div>
             </form>
