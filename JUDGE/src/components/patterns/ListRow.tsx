@@ -58,7 +58,7 @@ export function ListRow({
           <h4 className="text-sm font-semibold text-white group-hover:text-accent transition-colors truncate">
             {team.name}
           </h4>
-          <p className="text-xs text-text-muted truncate">{team.domain}</p>
+          <p className="text-xs text-text-muted truncate">{team.case_study}</p>
         </div>
 
         {/* Footer Meta */}
@@ -99,7 +99,7 @@ export function ListRow({
           <span className="text-xs font-medium text-white group-hover:text-accent transition-colors truncate">
             {team.name}
           </span>
-          <span className="text-[11px] text-text-muted hidden sm:inline truncate">&bull; {team.domain}</span>
+          <span className="text-[11px] text-text-muted hidden sm:inline truncate">&bull; {team.case_study}</span>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -140,7 +140,7 @@ export function ListRow({
         }}
       />
 
-      {/* Left: Team ID Chip (Pink) + Name & Domain */}
+      {/* Left: Team ID Chip (Pink) + Name & Case Study */}
       <div className="flex items-center gap-3.5 min-w-0">
         <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-[4px] bg-accent/15 text-accent border border-accent/30 shrink-0 shadow-sm">
           {team.team_code}
@@ -151,7 +151,7 @@ export function ListRow({
             {team.name}
           </div>
           <div className="text-xs text-text-muted truncate mt-0.5 flex items-center gap-2">
-            <span>{team.domain}</span>
+            <span>{team.case_study}</span>
             {team.members && team.members.length > 0 && (
               <>
                 <span className="text-border-strong">&bull;</span>

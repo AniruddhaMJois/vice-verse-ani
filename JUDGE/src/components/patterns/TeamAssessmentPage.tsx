@@ -247,9 +247,6 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
                 <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                   {team.name}
                 </h1>
-                <span className="font-mono text-xs text-signal px-2.5 py-0.5 rounded bg-signal/15 border border-signal/30">
-                  {team.domain}
-                </span>
               </div>
             </div>
 
