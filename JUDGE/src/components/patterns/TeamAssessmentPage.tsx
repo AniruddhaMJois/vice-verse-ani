@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { dataRepositories } from "@/lib/data";
 import { Team, Criterion, EvaluationScore, EvaluationStatus, Evaluation } from "@/lib/data/types";
 import { ScoreTable } from "@/components/patterns/ScoreTable";
+import { toast } from "sonner";
 import { StatusBadge } from "@/components/patterns/StatusBadge";
 import { LinkChip } from "@/components/patterns/LinkChip";
 import { Button } from "@/components/ui/Button";
@@ -168,12 +169,29 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
       setHasUnsavedChanges(false);
       setIsEditingDraft(false);
       setFeedbackError(false);
+
+      if (status === "submitted") {
+        toast.success("Evaluation submitted successfully", {
+          description: `Team ${team.teamCode} (${team.name}) assessment has been finalized and locked.`,
+          duration: 5000,
+          className: "!bg-[#031d0b] !border-2 !border-[#00ff41] !text-white font-mono shadow-[0_0_20px_rgba(0,255,65,0.35)]",
+          icon: <CheckCircle2 className="w-5 h-5 text-[#00ff41] shrink-0" />,
+        });
+      } else {
+        toast.success("Draft score saved successfully", {
+          description: "Your rubric marks and draft notes have been saved.",
+          duration: 3500,
+          className: "!bg-surface-2 !border !border-border !text-white font-mono",
+        });
+      }
+
       setToastMessage({
         type: "success",
-        text: status === "submitted" ? "Evaluation finalized & submitted!" : "Draft score saved successfully.",
+        text: status === "submitted" ? "Evaluation submitted successfully!" : "Draft score saved successfully.",
       });
       setTimeout(() => setToastMessage(null), 4000);
     } else {
+      toast.error(res.error || "Failed to save evaluation.");
       setToastMessage({
         type: "error",
         text: res.error || "Failed to save evaluation.",
