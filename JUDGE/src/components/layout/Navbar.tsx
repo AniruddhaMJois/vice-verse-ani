@@ -14,6 +14,8 @@ import {
   X,
   Layers,
   Users,
+  ArrowLeft,
+  Home,
 } from "lucide-react";
 
 import { isSupabaseConfigured } from "@/lib/supabase/client";
@@ -75,9 +77,37 @@ export function Navbar() {
         <div className="flex items-center gap-6">
           <Logo size="md" showSubtitle={true} isLink={true} />
 
+          {/* Back & Home Navigation Controls */}
+          <div className="flex items-center gap-1.5 pl-3 border-l border-border/50">
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined" && window.history.length > 1) {
+                  router.back();
+                } else {
+                  router.push(user ? (isJudge ? "/judge/dashboard" : "/mentor/dashboard") : "/");
+                }
+              }}
+              title="Go back"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-2 hover:bg-surface-3 border border-border hover:border-white/40 text-text-muted hover:text-white transition-all text-[11px] font-mono uppercase tracking-wider active:scale-95 cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-accent-hot" />
+              <span className="hidden sm:inline">Back</span>
+            </button>
+
+            <Link
+              href={user ? (isJudge ? "/judge/dashboard" : "/mentor/dashboard") : "/"}
+              title="Go to Home"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-2 hover:bg-surface-3 border border-border hover:border-white/40 text-text-muted hover:text-white transition-all text-[11px] font-mono uppercase tracking-wider active:scale-95"
+            >
+              <Home className="w-3.5 h-3.5 text-signal" />
+              <span className="hidden sm:inline">Home</span>
+            </Link>
+          </div>
+
           {/* Desktop Nav Links */}
           {user && (
-            <nav className="hidden md:flex items-center gap-1 pl-4 border-l border-border/50">
+            <nav className="hidden md:flex items-center gap-1 pl-3 border-l border-border/50">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
                 return (
@@ -193,6 +223,32 @@ export function Navbar() {
                 >
                   {user.role}
                 </span>
+              </div>
+
+              <div className="flex items-center gap-2 pb-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (typeof window !== "undefined" && window.history.length > 1) {
+                      router.back();
+                    } else {
+                      router.push(user ? (isJudge ? "/judge/dashboard" : "/mentor/dashboard") : "/");
+                    }
+                  }}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded bg-surface-3 border border-border text-xs font-mono text-text-muted hover:text-white"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5 text-accent-hot" />
+                  <span>Back</span>
+                </button>
+                <Link
+                  href={user ? (isJudge ? "/judge/dashboard" : "/mentor/dashboard") : "/"}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded bg-surface-3 border border-border text-xs font-mono text-text-muted hover:text-white"
+                >
+                  <Home className="w-3.5 h-3.5 text-signal" />
+                  <span>Home</span>
+                </Link>
               </div>
 
               <div className="space-y-1">

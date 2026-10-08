@@ -12,6 +12,7 @@ import { LinkChip } from "@/components/patterns/LinkChip";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { NavigationBar } from "@/components/layout/NavigationBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import {
@@ -238,30 +239,31 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
 
         {/* Header & Breadcrumb */}
         <div className="space-y-3 border-b border-border/50 pb-5">
-          <Breadcrumbs
-            items={[
-              { label: "HOME", href: "/" },
-              {
-                label: "FINAL ROUND",
-                href: isJudgePortal ? "/judge/dashboard" : "/mentor/dashboard",
-              },
-              {
-                label: "TEAMS",
-                href: isJudgePortal ? "/judge/teams" : "/mentor/teams",
-              },
-              { label: team.teamCode },
-            ]}
-          />
+          <div className="flex items-center gap-3">
+            <NavigationBar
+              homeHref={isJudgePortal ? "/judge/dashboard" : "/mentor/dashboard"}
+              backHref={isJudgePortal ? "/judge/teams" : "/mentor/teams"}
+            />
+            <div className="h-4 w-[1px] bg-border-strong hidden sm:block" />
+            <Breadcrumbs
+              items={[
+                { label: "HOME", href: "/" },
+                {
+                  label: "FINAL ROUND",
+                  href: isJudgePortal ? "/judge/dashboard" : "/mentor/dashboard",
+                },
+                {
+                  label: "TEAMS",
+                  href: isJudgePortal ? "/judge/teams" : "/mentor/teams",
+                },
+                { label: team.teamCode },
+              ]}
+            />
+          </div>
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
             <div className="space-y-1">
               <div className="flex items-center gap-3">
-                <Link
-                  href={isJudgePortal ? "/judge/teams" : "/mentor/teams"}
-                  className="p-1.5 rounded hover:bg-surface-2 text-text-muted hover:text-white transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </Link>
                 <span className="px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot font-mono text-sm font-bold shadow-sm">
                   {team.teamCode}
                 </span>

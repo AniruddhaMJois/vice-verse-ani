@@ -9,6 +9,7 @@ import { StatCard } from "@/components/patterns/StatCard";
 import { FinalRoundBanner } from "@/components/patterns/FinalRoundBanner";
 import { RecentActivityList } from "@/components/patterns/RecentActivityList";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { NavigationBar } from "@/components/layout/NavigationBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Layers, Eye, Zap, ShieldCheck } from "lucide-react";
@@ -89,16 +90,20 @@ export default function MentorDashboard() {
       <Navbar />
 
       <main className="relative z-10 max-w-[1240px] w-full mx-auto px-4 sm:px-6 py-8 flex-1 space-y-8">
-        {/* Breadcrumb & Welcome Bar */}
+        {/* Navigation & Welcome Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-5">
-          <div className="space-y-1">
-            <Breadcrumbs
-              items={[
-                { label: "HOME", href: "/" },
-                { label: "FINAL ROUND", href: "/mentor/dashboard" },
-                { label: "DASHBOARD" },
-              ]}
-            />
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <NavigationBar homeHref="/mentor/dashboard" backHref="/" />
+              <div className="h-4 w-[1px] bg-border-strong hidden sm:block" />
+              <Breadcrumbs
+                items={[
+                  { label: "HOME", href: "/" },
+                  { label: "FINAL ROUND", href: "/mentor/dashboard" },
+                  { label: "DASHBOARD" },
+                ]}
+              />
+            </div>
             <div className="flex items-center gap-2 pt-1">
               <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                 Mentor Observational Console
