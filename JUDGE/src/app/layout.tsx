@@ -46,7 +46,7 @@ export default function RootLayout({
           <CommandPalette />
           <Toaster
             theme="dark"
-            position="bottom-right"
+            position="top-right"
             toastOptions={{
               className:
                 "!bg-surface-2 !text-text !border !border-border !rounded-[8px] !shadow-pop font-mono text-xs !py-3 !px-4",
