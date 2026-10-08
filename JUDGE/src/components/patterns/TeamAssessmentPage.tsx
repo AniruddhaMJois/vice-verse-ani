@@ -20,6 +20,7 @@ import {
   Lock,
   Save,
   Send,
+  Edit3,
   AlertTriangle,
   ExternalLink,
   Users,
@@ -52,6 +53,8 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isEditingDraft, setIsEditingDraft] = useState(false);
+  const [feedbackError, setFeedbackError] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Auth guard
@@ -121,10 +124,25 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
     if (!isJudgePortal || evaluation?.status === "submitted") return;
     setFeedback(val);
     setHasUnsavedChanges(true);
+    if (feedbackError && val.trim()) {
+      setFeedbackError(false);
+    }
   };
 
   const handleSave = async (status: EvaluationStatus) => {
     if (!user || !isJudgePortal || evaluation?.status === "submitted") return;
+
+    // Compulsory check: feedback must be entered before submitting
+    if (status === "submitted") {
+      if (!feedback || !feedback.trim()) {
+        setFeedbackError(true);
+        setToastMessage({
+          type: "error",
+          text: "Qualitative jury feedback is compulsory before submitting evaluation.",
+        });
+        return;
+      }
+    }
 
     setSaving(true);
     setToastMessage(null);
@@ -147,6 +165,8 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
     if (res.success && res.evaluation) {
       setEvaluation(res.evaluation);
       setHasUnsavedChanges(false);
+      setIsEditingDraft(false);
+      setFeedbackError(false);
       setToastMessage({
         type: "success",
         text: status === "submitted" ? "Evaluation finalized & submitted!" : "Draft score saved successfully.",
@@ -160,7 +180,8 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
     }
   };
 
-  const isLocked = !isJudgePortal || evaluation?.status === "submitted";
+  const isDraftSaved = evaluation?.status === "draft";
+  const isLocked = !isJudgePortal || evaluation?.status === "submitted" || (isDraftSaved && !isEditingDraft);
 
   if (loading) {
     return (
@@ -255,7 +276,15 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
               {isLocked && (
                 <div className="flex items-center gap-1 text-xs font-mono text-text-muted px-2.5 py-1 rounded bg-surface-2 border border-border">
                   <Lock className="w-3.5 h-3.5 text-text-faint" />
-                  <span>{isJudgePortal ? "SUBMITTED (LOCKED)" : "VIEW-ONLY"}</span>
+                  <span>
+                    {evaluation?.status === "submitted"
+                      ? isJudgePortal
+                        ? "SUBMITTED (LOCKED)"
+                        : "VIEW-ONLY"
+                      : isDraftSaved && !isEditingDraft
+                      ? "DRAFT SAVED (CLICK EDIT TO MODIFY)"
+                      : "VIEW-ONLY"}
+                  </span>
                 </div>
               )}
             </div>
@@ -307,16 +336,30 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
               criteria={criteria}
               marks={marks}
               onChange={handleScoreChange}
-              isLocked={evaluation?.status === "submitted"}
+              isLocked={isLocked}
               isReadOnly={!isJudgePortal}
             />
 
             {/* Qualitative Feedback Textarea */}
-            <div className="p-6 bg-surface/90 rounded-card border border-border space-y-3">
-              <label className="font-mono text-xs uppercase tracking-wider text-text-muted font-semibold flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-[1px] bg-signal" />
-                QUALITATIVE JURY FEEDBACK &amp; DEFENSE NOTES
-              </label>
+            <div
+              className={`p-6 bg-surface/90 rounded-card border transition-all space-y-3 ${
+                feedbackError ? "border-danger shadow-glow-pink" : "border-border"
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <label className="font-mono text-xs uppercase tracking-wider text-text-muted font-semibold flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-[1px] bg-signal" />
+                  QUALITATIVE JURY FEEDBACK &amp; DEFENSE NOTES
+                  <span className="text-accent text-[10px] font-mono font-bold tracking-normal">
+                    (COMPULSORY TO SUBMIT)
+                  </span>
+                </label>
+                {feedbackError && (
+                  <span className="font-mono text-xs text-danger font-semibold">
+                    * Feedback is required before submitting evaluation
+                  </span>
+                )}
+              </div>
               <textarea
                 rows={4}
                 value={feedback}
@@ -324,11 +367,20 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
                 onChange={(e) => handleFeedbackChange(e.target.value)}
                 placeholder={
                   isJudgePortal
-                    ? "Enter structured feedback, architectural strengths, and key Q&A defense observations..."
+                    ? "Enter structured feedback, architectural strengths, and key Q&A defense observations (compulsory before submission)..."
                     : "No jury feedback entered yet."
                 }
-                className="w-full p-4 bg-surface-2 border border-border rounded font-sans text-sm text-white placeholder:text-text-faint focus:outline-none focus:border-accent focus:shadow-glow-pink disabled:opacity-60 transition-all"
+                className={`w-full p-4 bg-surface-2 border rounded font-sans text-sm text-white placeholder:text-text-faint focus:outline-none focus:shadow-glow-pink disabled:opacity-60 transition-all ${
+                  feedbackError
+                    ? "border-danger focus:border-danger"
+                    : "border-border focus:border-accent"
+                }`}
               />
+              {!feedback.trim() && isDraftSaved && !isEditingDraft && (
+                <p className="text-xs font-mono text-amber-400">
+                  ⚠️ Note: Click &quot;Edit&quot; and enter qualitative feedback to enable final submission.
+                </p>
+              )}
             </div>
 
             {/* Action Bar (Judge Only) */}
@@ -341,30 +393,64 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
                       Unsaved changes
                     </span>
                   )}
+                  {isDraftSaved && !isEditingDraft && !hasUnsavedChanges && (
+                    <span className="text-signal flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-signal" />
+                      Draft saved — review scores or click Edit / Submit
+                    </span>
+                  )}
+                  {isEditingDraft && (
+                    <span className="text-accent flex items-center gap-1.5">
+                      <Edit3 className="w-3.5 h-3.5 text-accent" />
+                      Edit mode active
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    disabled={saving}
-                    onClick={() => handleSave("draft")}
-                    leftIcon={<Save className="w-4 h-4 text-accent" />}
-                    className="font-mono text-xs w-full sm:w-auto"
-                  >
-                    Save as Draft
-                  </Button>
+                  {(!isDraftSaved || isEditingDraft) ? (
+                    /* Step 1: When entering scores/feedback, ONLY option visible is Save as Draft */
+                    <Button
+                      variant="primary"
+                      size="md"
+                      disabled={saving}
+                      onClick={() => handleSave("draft")}
+                      leftIcon={<Save className="w-4 h-4 text-accent" />}
+                      className="font-mono text-xs w-full sm:w-auto shadow-glow-pink"
+                    >
+                      {saving ? "Saving Draft..." : "Save as Draft"}
+                    </Button>
+                  ) : (
+                    /* Step 2: Once saved as draft, options visible are Edit and Submit */
+                    <>
+                      <Button
+                        variant="secondary"
+                        size="md"
+                        disabled={saving}
+                        onClick={() => setIsEditingDraft(true)}
+                        leftIcon={<Edit3 className="w-4 h-4 text-accent" />}
+                        className="font-mono text-xs w-full sm:w-auto hover:border-accent"
+                      >
+                        Edit
+                      </Button>
 
-                  <Button
-                    variant="primary"
-                    size="md"
-                    disabled={saving}
-                    onClick={() => handleSave("submitted")}
-                    rightIcon={<Send className="w-4 h-4" />}
-                    className="font-mono text-xs shadow-glow-dual w-full sm:w-auto"
-                  >
-                    Submit Final Assessment &rarr;
-                  </Button>
+                      <Button
+                        variant="primary"
+                        size="md"
+                        disabled={saving || !feedback.trim()}
+                        onClick={() => handleSave("submitted")}
+                        rightIcon={<Send className="w-4 h-4" />}
+                        className="font-mono text-xs shadow-glow-dual w-full sm:w-auto disabled:opacity-40"
+                        title={
+                          !feedback.trim()
+                            ? "Feedback is compulsory before submitting evaluation"
+                            : "Submit final assessment"
+                        }
+                      >
+                        {saving ? "Submitting..." : "Submit"}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             )}
