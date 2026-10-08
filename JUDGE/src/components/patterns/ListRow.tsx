@@ -48,7 +48,7 @@ export function ListRow({
         {/* Top Header */}
         <div className="flex items-start justify-between gap-2">
           <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-[4px] bg-accent/15 text-accent border border-accent/30">
-            {team.team_id}
+            {team.team_code}
           </span>
           <StatusBadge status={status} />
         </div>
@@ -56,7 +56,7 @@ export function ListRow({
         {/* Content */}
         <div className="space-y-1">
           <h4 className="text-sm font-semibold text-white group-hover:text-accent transition-colors truncate">
-            {team.team_name}
+            {team.name}
           </h4>
           <p className="text-xs text-text-muted truncate">{team.domain}</p>
         </div>
@@ -94,10 +94,10 @@ export function ListRow({
       >
         <div className="flex items-center gap-3 min-w-0">
           <span className="font-mono text-xs font-semibold text-accent shrink-0">
-            {team.team_id}
+            {team.team_code}
           </span>
           <span className="text-xs font-medium text-white group-hover:text-accent transition-colors truncate">
-            {team.team_name}
+            {team.name}
           </span>
           <span className="text-[11px] text-text-muted hidden sm:inline truncate">&bull; {team.domain}</span>
         </div>
@@ -143,12 +143,12 @@ export function ListRow({
       {/* Left: Team ID Chip (Pink) + Name & Domain */}
       <div className="flex items-center gap-3.5 min-w-0">
         <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-[4px] bg-accent/15 text-accent border border-accent/30 shrink-0 shadow-sm">
-          {team.team_id}
+          {team.team_code}
         </span>
 
         <div className="min-w-0">
           <div className="text-sm font-medium text-white group-hover:text-accent-hot transition-colors truncate">
-            {team.team_name}
+            {team.name}
           </div>
           <div className="text-xs text-text-muted truncate mt-0.5 flex items-center gap-2">
             <span>{team.domain}</span>
