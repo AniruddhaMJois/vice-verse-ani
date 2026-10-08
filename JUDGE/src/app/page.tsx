@@ -222,11 +222,11 @@ export default function LandingPage() {
               <Button
                 variant="primary"
                 size="lg"
-                className="w-full text-sm shadow-glow-pink font-mono tracking-wider justify-center"
+                className="w-full text-sm shadow-glow-pink font-mono tracking-wider justify-center whitespace-nowrap"
                 rightIcon={<ArrowRight className="w-4 h-4" />}
                 leftIcon={<ShieldCheck className="w-4 h-4 text-accent" />}
               >
-                Judge Portal &rarr;
+                Judge Portal
               </Button>
             </Link>
 
@@ -234,10 +234,11 @@ export default function LandingPage() {
               <Button
                 variant="secondary-green"
                 size="lg"
-                className="w-full text-sm hover:shadow-glow-green font-mono tracking-wider justify-center"
+                className="w-full text-sm hover:shadow-glow-green font-mono tracking-wider justify-center whitespace-nowrap"
+                rightIcon={<ArrowRight className="w-4 h-4" />}
                 leftIcon={<Eye className="w-4 h-4 text-signal" />}
               >
-                Mentor Portal &rarr;
+                Mentor Portal
               </Button>
             </Link>
           </div>

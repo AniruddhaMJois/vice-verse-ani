@@ -300,8 +300,8 @@ export function PortalLogin({ role }: PortalLoginProps) {
                   {isSubmitting
                     ? "AUTHENTICATING..."
                     : isJudge
-                    ? "Enter Judge Portal ->"
-                    : "Enter Mentor Portal ->"}
+                    ? "Enter Judge Portal"
+                    : "Enter Mentor Portal"}
                 </Button>
               </div>
             </form>

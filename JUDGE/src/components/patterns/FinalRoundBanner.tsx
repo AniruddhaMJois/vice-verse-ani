@@ -76,7 +76,7 @@ export function FinalRoundBanner({
               className="font-mono text-xs tracking-wider px-6 shadow-glow-dual"
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
-              Open Team Roster &rarr;
+              Open Team Roster
             </Button>
           </Link>
         </div>
