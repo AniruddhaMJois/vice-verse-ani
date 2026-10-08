@@ -331,6 +331,36 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
         {/* Tab 1: Scoring Matrix */}
         {activeTab === "evaluation" && (
           <div className="space-y-6">
+            {/* Project Deliverables Quick Bar: Visible right along with the marks */}
+            <div className="p-4 sm:p-5 bg-surface/90 rounded-card border-2 border-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-signal shadow-[0_0_8px_var(--signal)]" />
+                  <span className="font-mono text-xs uppercase tracking-wider text-white font-bold">
+                    PROJECT DELIVERABLES &amp; DOSSIER LINKS
+                  </span>
+                </div>
+                <p className="text-xs text-text-muted">
+                  Inspect pitch decks, code repository, and drive assets while awarding marks below.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {team.canvaUrl ? (
+                  <LinkChip href={team.canvaUrl} label="Canva Slide Deck" variant="canva" />
+                ) : null}
+                {team.driveUrl ? (
+                  <LinkChip href={team.driveUrl} label="Google Drive Folder" variant="drive" />
+                ) : null}
+                {team.githubUrl ? (
+                  <LinkChip href={team.githubUrl} label="GitHub Code" variant="github" />
+                ) : null}
+                {!team.canvaUrl && !team.driveUrl && !team.githubUrl && (
+                  <span className="font-mono text-xs text-text-muted">No external links submitted</span>
+                )}
+              </div>
+            </div>
+
             {/* Score Table with Typing-Only Input + Chevrons */}
             <ScoreTable
               criteria={criteria}
@@ -342,12 +372,12 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
 
             {/* Qualitative Feedback Textarea */}
             <div
-              className={`p-6 bg-surface/90 rounded-card border transition-all space-y-3 ${
-                feedbackError ? "border-danger shadow-glow-pink" : "border-border"
+              className={`p-6 bg-surface/90 rounded-card border-2 border-white transition-all space-y-3 shadow-xl ${
+                feedbackError ? "border-danger shadow-glow-pink" : ""
               }`}
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <label className="font-mono text-xs uppercase tracking-wider text-text-muted font-semibold flex items-center gap-2">
+                <label className="font-mono text-xs uppercase tracking-wider text-white font-bold flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-[1px] bg-signal" />
                   QUALITATIVE JURY FEEDBACK &amp; DEFENSE NOTES
                   <span className="text-accent text-[10px] font-mono font-bold tracking-normal">
@@ -370,10 +400,10 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
                     ? "Enter structured feedback, architectural strengths, and key Q&A defense observations (compulsory before submission)..."
                     : "No jury feedback entered yet."
                 }
-                className={`w-full p-4 bg-surface-2 border rounded font-sans text-sm text-white placeholder:text-text-faint focus:outline-none focus:shadow-glow-pink disabled:opacity-60 transition-all ${
+                className={`w-full p-4 bg-surface-2 border-2 border-white rounded font-sans text-sm text-white placeholder:text-text-muted focus:outline-none focus:shadow-glow-pink disabled:opacity-60 transition-all ${
                   feedbackError
                     ? "border-danger focus:border-danger"
-                    : "border-border focus:border-accent"
+                    : "border-white focus:border-accent"
                 }`}
               />
               {!feedback.trim() && isDraftSaved && !isEditingDraft && (

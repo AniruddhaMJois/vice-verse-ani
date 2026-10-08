@@ -349,7 +349,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
             </Button>
           </div>
         ) : viewMode === "table" ? (
-          /* TABLE VIEW: Exactly Team ID, Team Name, Status, Action */
+          /* TABLE VIEW: Team ID, Team Name, Deliverables, Status, Action */
           <div className="bg-surface/90 backdrop-blur-md rounded-card border border-border overflow-hidden shadow-xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -365,19 +365,20 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                       </div>
                     </th>
                     <th
-                      className="p-4 cursor-pointer hover:text-white whitespace-nowrap min-w-[240px]"
+                      className="p-4 cursor-pointer hover:text-white whitespace-nowrap min-w-[220px]"
                       onClick={() => handleSort("name")}
                     >
                       <div className="flex items-center gap-1.5 whitespace-nowrap">
                         <span>TEAM NAME</span>
                         <ArrowUpDown className="w-3 h-3 text-text-faint shrink-0" />
-                        <span className="text-[10px] text-text-faint lowercase font-sans font-normal">
-                          (click to view details)
+                        <span className="text-[10px] text-text-muted lowercase font-sans font-normal">
+                          (click for details)
                         </span>
                       </div>
                     </th>
-                    <th className="p-4 whitespace-nowrap min-w-[150px]">STATUS</th>
-                    <th className="p-4 pr-5 text-right whitespace-nowrap min-w-[120px]">ACTION</th>
+                    <th className="p-4 whitespace-nowrap min-w-[190px]">DELIVERABLES</th>
+                    <th className="p-4 whitespace-nowrap min-w-[140px]">STATUS</th>
+                    <th className="p-4 pr-5 text-right whitespace-nowrap min-w-[110px]">ACTION</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50 text-xs font-sans">
@@ -407,19 +408,37 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                                 {team.name}
                               </span>
                               <ChevronDown
-                                className={`w-4 h-4 text-text-faint group-hover:text-accent transition-transform duration-200 shrink-0 ${
+                                className={`w-4 h-4 text-text-muted group-hover:text-accent transition-transform duration-200 shrink-0 ${
                                   isExpanded ? "rotate-180 text-accent" : ""
                                 }`}
                               />
                             </div>
                           </td>
 
-                          {/* 3. STATUS */}
+                          {/* 3. DELIVERABLES (Drive, Canva, GitHub links directly visible in roster, not as dropdown list) */}
+                          <td className="p-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              {team.canvaUrl ? (
+                                <LinkChip href={team.canvaUrl} label="Deck" variant="canva" />
+                              ) : null}
+                              {team.driveUrl ? (
+                                <LinkChip href={team.driveUrl} label="Drive" variant="drive" />
+                              ) : null}
+                              {team.githubUrl ? (
+                                <LinkChip href={team.githubUrl} label="Code" variant="github" />
+                              ) : null}
+                              {!team.canvaUrl && !team.driveUrl && !team.githubUrl && (
+                                <span className="font-mono text-[11px] text-text-muted">No links</span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* 4. STATUS */}
                           <td className="p-4 whitespace-nowrap">
                             <StatusBadge status={status} />
                           </td>
 
-                          {/* 4. ACTION */}
+                          {/* 5. ACTION */}
                           <td className="p-4 pr-5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                             <Link
                               href={
@@ -443,7 +462,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                         {/* Inline Expandable Dossier Peek Panel: VISIBLE WHEN TEAM NAME IS SELECTED */}
                         {isExpanded && (
                           <tr className="bg-surface-3/95 transition-all">
-                            <td colSpan={4} className="p-6 border-l-4 border-l-accent border-b border-border shadow-inner">
+                            <td colSpan={5} className="p-6 border-l-4 border-l-accent border-b border-border shadow-inner">
                               <div className="space-y-5">
                                 {/* Header with Team Info and Quick Navigate */}
                                 <div className="flex items-start justify-between gap-4">
