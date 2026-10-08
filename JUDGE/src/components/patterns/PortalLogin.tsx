@@ -38,14 +38,39 @@ export function PortalLogin({ role }: PortalLoginProps) {
     useRef<HTMLInputElement | null>(null),
   ];
 
-  // Cooldown countdown
+  // Initialize and persist failed attempts & cooldown
+  useEffect(() => {
+    try {
+      const attemptsKey = `viceverse_failed_attempts_${role}`;
+      const cooldownUntilKey = `viceverse_lockout_until_${role}`;
+
+      const savedAttempts = parseInt(localStorage.getItem(attemptsKey) || "0", 10);
+      setFailedAttempts(savedAttempts);
+
+      const lockoutUntil = parseInt(localStorage.getItem(cooldownUntilKey) || "0", 10);
+      const now = Math.floor(Date.now() / 1000);
+      if (lockoutUntil > now) {
+        setCooldown(lockoutUntil - now);
+      }
+    } catch {}
+  }, [role]);
+
+  // Cooldown countdown timer
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = setInterval(() => {
-      setCooldown((prev) => Math.max(0, prev - 1));
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          try {
+            localStorage.removeItem(`viceverse_lockout_until_${role}`);
+          } catch {}
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(timer);
-  }, [cooldown]);
+  }, [cooldown, role]);
 
   const cleanId = loginId.trim().toUpperCase().replace(/\s+/g, "");
   const isIdValid = /^[A-Z]{3}[0-9]{5}$/.test(cleanId) && cleanId.startsWith(expectedPrefix);
@@ -97,7 +122,19 @@ export function PortalLogin({ role }: PortalLoginProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid || isSubmitting || cooldown > 0) return;
+
+    const attemptsKey = `viceverse_failed_attempts_${role}`;
+    const cooldownUntilKey = `viceverse_lockout_until_${role}`;
+
+    // If cooldown is active or failed attempts is already >= 3, reject immediately (even if credentials are correct!)
+    if (cooldown > 0 || failedAttempts >= 3) {
+      setError(`Access Locked: Too many failed attempts (3/3). Please wait ${cooldown > 0 ? cooldown : 60}s before retrying.`);
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+      return;
+    }
+
+    if (!isFormValid || isSubmitting) return;
 
     setIsSubmitting(true);
     setIsBooting(true);
@@ -106,6 +143,14 @@ export function PortalLogin({ role }: PortalLoginProps) {
     const res = await login(cleanId, pin, role);
 
     if (res.success) {
+      // Clear failed attempts counter upon successful login
+      try {
+        localStorage.removeItem(attemptsKey);
+        localStorage.removeItem(cooldownUntilKey);
+      } catch {}
+      setFailedAttempts(0);
+      setCooldown(0);
+
       setTimeout(() => {
         router.push(isJudge ? "/judge/dashboard" : "/mentor/dashboard");
       }, 1000);
@@ -114,11 +159,25 @@ export function PortalLogin({ role }: PortalLoginProps) {
       setIsSubmitting(false);
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
-      if (newAttempts >= 5) {
-        setCooldown(30);
+
+      try {
+        localStorage.setItem(attemptsKey, newAttempts.toString());
+      } catch {}
+
+      if (newAttempts >= 3) {
+        const lockoutDuration = 60; // 60-second security lockout
+        const lockoutUntil = Math.floor(Date.now() / 1000) + lockoutDuration;
+        setCooldown(lockoutDuration);
+        try {
+          localStorage.setItem(cooldownUntilKey, lockoutUntil.toString());
+        } catch {}
+        setError("Maximum limit reached: 3 failed attempts. Account temporarily locked for 60 seconds.");
+      } else {
+        const remaining = 3 - newAttempts;
+        setError(`Invalid ID or PIN (${newAttempts}/3 attempts used. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining)`);
       }
+
       setShake(true);
-      setError("Invalid ID or PIN");
       setTimeout(() => setShake(false), 500);
     }
   };
@@ -265,7 +324,8 @@ export function PortalLogin({ role }: PortalLoginProps) {
                     placeholder={`${expectedPrefix}10001`}
                     maxLength={8}
                     autoComplete="username"
-                    className={`w-full px-4 py-3 bg-surface-2 border rounded font-mono text-sm tracking-wider text-white placeholder:text-text-faint focus:outline-none transition-all ${
+                    disabled={cooldown > 0 || failedAttempts >= 3}
+                    className={`w-full px-4 py-3 bg-surface-2 border rounded font-mono text-sm tracking-wider text-white placeholder:text-text-faint focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                       isIdValid
                         ? "border-signal shadow-[0_0_8px_rgba(0,255,65,0.2)]"
                         : "border-border focus:border-accent"
@@ -301,7 +361,8 @@ export function PortalLogin({ role }: PortalLoginProps) {
                       onChange={(e) => handlePinChange(idx, e.target.value)}
                       onKeyDown={(e) => handlePinKeyDown(idx, e)}
                       onPaste={handlePinPaste}
-                      className="w-full h-14 bg-surface-2 border border-border rounded text-center text-xl font-mono text-white focus:outline-none focus:border-accent focus:shadow-glow-pink transition-all"
+                      disabled={cooldown > 0 || failedAttempts >= 3}
+                      className="w-full h-14 bg-surface-2 border border-border rounded text-center text-xl font-mono text-white focus:outline-none focus:border-accent focus:shadow-glow-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   ))}
                 </div>
@@ -313,11 +374,13 @@ export function PortalLogin({ role }: PortalLoginProps) {
                   type="submit"
                   variant={isJudge ? "primary" : "secondary-green"}
                   size="lg"
-                  disabled={!isFormValid || isSubmitting || cooldown > 0}
-                  className="w-full font-mono tracking-wider text-sm py-3.5 justify-center"
+                  disabled={!isFormValid || isSubmitting || cooldown > 0 || failedAttempts >= 3}
+                  className="w-full font-mono tracking-wider text-sm py-3.5 justify-center disabled:opacity-40"
                   rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  {isSubmitting
+                  {cooldown > 0 || failedAttempts >= 3
+                    ? `LOCKED OUT (${cooldown > 0 ? cooldown : 60}S)`
+                    : isSubmitting
                     ? "AUTHENTICATING..."
                     : isJudge
                     ? "Enter Judge Portal"

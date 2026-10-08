@@ -94,9 +94,9 @@ export function Navbar() {
           : "bg-transparent border-b border-transparent"
       }`}
     >
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-start gap-4 sm:gap-6">
         {/* Left: Logo Mark + Wordmark */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           <Logo size="md" showSubtitle={true} isLink={true} />
 
           {/* Back & Home Navigation Controls */}
@@ -152,22 +152,11 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Right: Actions, System Beacon, User Block */}
-        <div className="flex items-center gap-3">
-          {/* Live System Beacon */}
-          <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-2 border border-border text-[11px] font-mono text-text-muted">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-signal opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-signal shadow-[0_0_8px_var(--signal)]" />
-            </span>
-            <span className="text-signal font-medium">LIVE</span>
-            <span className="text-border-strong">|</span>
-            <span className="text-text-faint">{isSupabase ? "Supabase Node" : "Mock Telemetry"}</span>
-          </div>
-
+        {/* User Block & Actions (Left Aligned Next to Nav) */}
+        <div className="flex items-center gap-3 pl-3 border-l border-border/50">
           {/* User Badge */}
           {user ? (
-            <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-border/50">
+            <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase border ${
@@ -208,8 +197,19 @@ export function Navbar() {
             </div>
           )}
 
+          {/* Live System Beacon */}
+          <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-2 border border-border text-[11px] font-mono text-text-muted">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-signal opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-signal shadow-[0_0_8px_var(--signal)]" />
+            </span>
+            <span className="text-signal font-medium">LIVE</span>
+            <span className="text-border-strong">|</span>
+            <span className="text-text-faint">{isSupabase ? "Supabase Node" : "Mock Telemetry"}</span>
+          </div>
+
           {/* Mobile Hamburger Toggle */}
-          <div className="flex md:hidden">
+          <div className="flex md:hidden ml-auto">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded bg-surface-2 border border-border text-text-muted hover:text-white"
