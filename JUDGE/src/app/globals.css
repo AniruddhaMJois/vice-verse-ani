@@ -18,12 +18,12 @@
     --text-faint: #94a3b8;
     --text-inverse: #02040a;
 
-    /* PINK family (human voice / intent / nav / focus / judge) */
-    --accent: #ff2e9a;
-    --accent-hot: #ff5cb8;
-    --accent-deep: #8a0f52;
-    --accent-bg: rgba(255, 46, 154, 0.12);
-    --accent-border: rgba(255, 46, 154, 0.38);
+    /* PINK family (human voice / intent / nav / focus / judge - ultra luminous, high contrast) */
+    --accent: #ff60b8;
+    --accent-hot: #ffa8e8;
+    --accent-deep: #b0156d;
+    --accent-bg: rgba(255, 96, 184, 0.22);
+    --accent-border: rgba(255, 96, 184, 0.55);
 
     /* GREEN family (machine voice / live / success / verified / mentor) */
     --signal: #00ff41;

@@ -396,7 +396,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                         >
                           {/* 1. TEAM ID */}
                           <td className="p-4 pl-5 font-mono font-bold whitespace-nowrap">
-                            <span className="inline-flex items-center justify-center whitespace-nowrap px-2.5 py-1 rounded bg-accent/15 border border-accent/35 text-accent shadow-sm font-bold text-xs tracking-wider shrink-0">
+                            <span className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot shadow-sm font-bold text-xs tracking-wider shrink-0">
                               {team.teamCode}
                             </span>
                           </td>
@@ -468,7 +468,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                                 <div className="flex items-start justify-between gap-4">
                                   <div className="space-y-1.5 max-w-3xl">
                                     <div className="flex items-center gap-2">
-                                      <span className="inline-flex items-center justify-center whitespace-nowrap px-2.5 py-0.5 rounded bg-accent/20 border border-accent/40 text-accent font-mono text-xs font-bold shrink-0">
+                                      <span className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot font-mono text-xs font-bold shrink-0 shadow-sm">
                                         {team.teamCode}
                                       </span>
                                       <h3 className="text-lg font-bold text-white">{team.name}</h3>
@@ -476,8 +476,8 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                                     
                                     {/* Case Study Details */}
                                     <div className="pt-2">
-                                      <div className="font-mono text-[11px] text-accent uppercase tracking-wider font-semibold mb-1 flex items-center gap-1.5">
-                                        <FileText className="w-3.5 h-3.5 text-accent" />
+                                      <div className="font-mono text-[11px] text-accent-hot uppercase tracking-wider font-bold mb-1 flex items-center gap-1.5">
+                                        <FileText className="w-3.5 h-3.5 text-accent-hot" />
                                         <span>CASE STUDY TOPIC &amp; BRIEF</span>
                                       </div>
                                       <p className="text-xs text-text-muted leading-relaxed whitespace-pre-line pl-5 border-l-2 border-accent/30 mt-1">
@@ -574,7 +574,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center justify-center whitespace-nowrap px-2.5 py-1 rounded bg-accent/15 border border-accent/30 text-accent font-mono text-xs font-bold shrink-0">
+                      <span className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot font-mono text-xs font-bold shrink-0 shadow-sm">
                         {team.teamCode}
                       </span>
                       <StatusBadge status={status} />
@@ -587,7 +587,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                     </div>
 
                     <div className="space-y-1">
-                      <span className="font-mono text-[10px] text-accent uppercase tracking-wider font-semibold">
+                      <span className="font-mono text-[10px] text-accent-hot uppercase tracking-wider font-bold">
                         CASE STUDY:
                       </span>
                       <p className="text-xs text-text-muted line-clamp-3 leading-relaxed">
@@ -661,7 +661,7 @@ export function TeamsDossierPage({ portal }: TeamsDossierPageProps) {
                           className="p-4 bg-surface-2/90 rounded border border-border hover:border-accent transition-all space-y-3"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="inline-flex items-center justify-center whitespace-nowrap px-2.5 py-1 rounded bg-accent/15 text-accent font-mono text-[11px] font-bold shrink-0">
+                            <span className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot font-mono text-[11px] font-bold shrink-0 shadow-sm">
                               {team.teamCode}
                             </span>
                             <span className="text-[10px] font-mono text-text-faint">

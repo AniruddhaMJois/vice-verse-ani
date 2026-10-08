@@ -262,7 +262,7 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </Link>
-                <span className="px-2.5 py-0.5 rounded bg-accent/15 border border-accent/40 text-accent font-mono text-sm font-bold">
+                <span className="px-3 py-1 rounded bg-surface-2 border-2 border-accent text-accent-hot font-mono text-sm font-bold shadow-sm">
                   {team.teamCode}
                 </span>
                 <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
@@ -492,7 +492,7 @@ export function TeamAssessmentPage({ teamId, portal }: TeamAssessmentPageProps) 
           <div className="space-y-6">
             {/* Case Study Card */}
             <div className="p-6 bg-surface/90 rounded-card border border-border space-y-3">
-              <h3 className="font-mono text-xs uppercase tracking-wider text-accent font-semibold flex items-center gap-2">
+              <h3 className="font-mono text-xs uppercase tracking-wider text-accent-hot font-bold flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 CASE STUDY PROBLEM STATEMENT &amp; ARCHITECTURE
               </h3>

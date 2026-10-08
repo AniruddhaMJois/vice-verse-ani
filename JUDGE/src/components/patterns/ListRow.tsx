@@ -47,7 +47,7 @@ export function ListRow({
       >
         {/* Top Header */}
         <div className="flex items-start justify-between gap-2">
-          <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-[4px] bg-accent/15 text-accent border border-accent/30">
+          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-[4px] bg-surface-2 text-accent-hot border-2 border-accent">
             {team.team_code}
           </span>
           <StatusBadge status={status} />
@@ -93,7 +93,7 @@ export function ListRow({
         )}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className="font-mono text-xs font-semibold text-accent shrink-0">
+          <span className="font-mono text-xs font-bold text-accent-hot shrink-0">
             {team.team_code}
           </span>
           <span className="text-xs font-medium text-white group-hover:text-accent transition-colors truncate">
@@ -142,7 +142,7 @@ export function ListRow({
 
       {/* Left: Team ID Chip (Pink) + Name & Case Study */}
       <div className="flex items-center gap-3.5 min-w-0">
-        <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-[4px] bg-accent/15 text-accent border border-accent/30 shrink-0 shadow-sm">
+        <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-[4px] bg-surface-2 text-accent-hot border-2 border-accent shrink-0 shadow-sm">
           {team.team_code}
         </span>
 
