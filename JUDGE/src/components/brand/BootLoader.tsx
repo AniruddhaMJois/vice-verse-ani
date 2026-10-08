@@ -67,16 +67,17 @@ export function BootLoader({ onComplete, forceShow = false, portalName }: BootLo
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 0.35, ease: "easeOut" } }}
-          className="fixed inset-0 z-[100] bg-[#03050A] flex flex-col items-center justify-center p-6 select-none"
+          className="fixed inset-0 z-[100] bg-void/85 backdrop-blur-md flex flex-col items-center justify-center p-6 select-none"
         >
           {/* Dual subtle central glow */}
           <div
-            className="absolute w-80 h-80 rounded-full blur-[100px] pointer-events-none"
+            className="absolute w-96 h-96 rounded-full blur-[120px] pointer-events-none"
             style={{
               background:
-                "radial-gradient(circle at 40% 60%, rgba(255, 46, 154, 0.16) 0%, rgba(0, 255, 65, 0.12) 60%, transparent 80%)",
+                "radial-gradient(circle at 40% 60%, rgba(255, 46, 154, 0.22) 0%, rgba(0, 255, 65, 0.16) 60%, transparent 80%)",
             }}
           />
 

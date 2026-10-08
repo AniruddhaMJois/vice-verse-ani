@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { ConfirmDialog } from "@/components/ui/Dialog";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -27,6 +28,7 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSupabase, setIsSupabase] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     setIsSupabase(
@@ -40,8 +42,9 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = () => {
+  const performLogout = () => {
     const currentRole = user?.role;
+    setShowLogoutConfirm(false);
     logout();
     if (currentRole === "judge") {
       router.push("/judge/login");
@@ -49,6 +52,25 @@ export function Navbar() {
       router.push("/mentor/login");
     } else {
       router.push("/");
+    }
+  };
+
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleNavBack = () => {
+    // If currently on dashboard, ask for logout confirmation
+    const isDashboard = pathname === "/judge/dashboard" || pathname === "/mentor/dashboard";
+    if (isDashboard) {
+      setShowLogoutConfirm(true);
+      return;
+    }
+
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(user ? (isJudge ? "/judge/dashboard" : "/mentor/dashboard") : "/");
     }
   };
 
@@ -81,13 +103,7 @@ export function Navbar() {
           <div className="flex items-center gap-1.5 pl-3 border-l border-border/50">
             <button
               type="button"
-              onClick={() => {
-                if (typeof window !== "undefined" && window.history.length > 1) {
-                  router.back();
-                } else {
-                  router.push(user ? (isJudge ? "/judge/dashboard" : "/mentor/dashboard") : "/");
-                }
-              }}
+              onClick={handleNavBack}
               title="Go back"
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-2 hover:bg-surface-3 border border-border hover:border-white/40 text-text-muted hover:text-white transition-all text-[11px] font-mono uppercase tracking-wider active:scale-95 cursor-pointer"
             >
@@ -170,7 +186,7 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleLogout}
+                onClick={handleLogoutClick}
                 className="font-mono text-xs text-text-muted hover:text-danger"
                 leftIcon={<LogOut className="w-3.5 h-3.5" />}
               >
@@ -230,11 +246,7 @@ export function Navbar() {
                   type="button"
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    if (typeof window !== "undefined" && window.history.length > 1) {
-                      router.back();
-                    } else {
-                      router.push(user ? (isJudge ? "/judge/dashboard" : "/mentor/dashboard") : "/");
-                    }
+                    handleNavBack();
                   }}
                   className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded bg-surface-3 border border-border text-xs font-mono text-text-muted hover:text-white"
                 >
@@ -269,7 +281,10 @@ export function Navbar() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleLogout}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogoutClick();
+                  }}
                   className="w-full font-mono text-xs text-danger justify-center"
                   leftIcon={<LogOut className="w-3.5 h-3.5" />}
                 >
@@ -293,6 +308,18 @@ export function Navbar() {
           )}
         </div>
       )}
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={performLogout}
+        title="Sign Out Confirmation"
+        consequence="Are you sure you want to end your active session and log out? Any unsaved evaluation rubric drafts that have not been saved will be cleared."
+        confirmLabel="Confirm Sign Out"
+        cancelLabel="Stay in Portal"
+        variant="destructive"
+      />
     </header>
   );
 }

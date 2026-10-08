@@ -100,16 +100,17 @@ export function PortalLogin({ role }: PortalLoginProps) {
     if (!isFormValid || isSubmitting || cooldown > 0) return;
 
     setIsSubmitting(true);
+    setIsBooting(true);
     setError(null);
 
     const res = await login(cleanId, pin, role);
 
     if (res.success) {
-      setIsBooting(true);
       setTimeout(() => {
         router.push(isJudge ? "/judge/dashboard" : "/mentor/dashboard");
-      }, 1400);
+      }, 1000);
     } else {
+      setIsBooting(false);
       setIsSubmitting(false);
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
@@ -129,6 +130,7 @@ export function PortalLogin({ role }: PortalLoginProps) {
       {isBooting && (
         <BootLoader
           portalName={isJudge ? "JUDGE PORTAL" : "MENTOR PORTAL"}
+          forceShow={true}
           onComplete={() => {}}
         />
       )}

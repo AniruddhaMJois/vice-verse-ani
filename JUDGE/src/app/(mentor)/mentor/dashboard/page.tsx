@@ -70,9 +70,11 @@ export default function MentorDashboard() {
 
   if (authLoading || (!user && !error)) {
     return (
-      <div className="min-h-screen bg-[#03050A] flex items-center justify-center font-mono text-xs text-text-muted">
-        <span className="w-2 h-2 rounded-full bg-signal animate-ping mr-2" />
-        INITIALIZING MENTOR TELEMETRY NODE...
+      <div className="min-h-screen bg-transparent flex flex-col items-center justify-center font-mono text-xs text-text-muted select-none">
+        <div className="flex items-center gap-2 p-4 rounded bg-surface-2/80 border border-border backdrop-blur-md shadow-glow-dual">
+          <span className="w-2.5 h-2.5 rounded-full bg-signal animate-ping mr-1 shadow-[0_0_8px_var(--signal)]" />
+          <span className="text-white font-bold tracking-wider">CONNECTING MENTOR TELEMETRY NODE...</span>
+        </div>
       </div>
     );
   }
@@ -94,7 +96,7 @@ export default function MentorDashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-5">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <NavigationBar homeHref="/mentor/dashboard" backHref="/" />
+              <NavigationBar homeHref="/mentor/dashboard" />
               <div className="h-4 w-[1px] bg-border-strong hidden sm:block" />
               <Breadcrumbs
                 items={[
